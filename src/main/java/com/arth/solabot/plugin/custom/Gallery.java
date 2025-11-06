@@ -5,6 +5,7 @@ import com.arth.solabot.adapter.sender.Sender;
 import com.arth.solabot.core.bot.dto.ParsedPayloadDTO;
 import com.arth.solabot.core.bot.invoker.annotation.BotCommand;
 import com.arth.solabot.core.bot.invoker.annotation.BotPlugin;
+import com.arth.solabot.core.general.config.SchedulerConfig;
 import com.arth.solabot.core.general.utils.FileUtils;
 import com.arth.solabot.plugin.resource.LocalData;
 import com.arth.solabot.plugin.resource.MemoryData;
@@ -76,6 +77,7 @@ public class Gallery extends Plugin {
     private final WebClient webClient;
     private final ObjectMapper objectMapper;
     private final TaskScheduler taskScheduler;
+    private final SchedulerConfig schedulerConfig;
 
     @Getter
     public final String helpText = """
@@ -153,17 +155,18 @@ public class Gallery extends Plugin {
     public void registerTask() {
         Runnable task = () -> {
             try {
+                log.info("[plugin.gallery] start scheduled syncing gallery...");
                 int count = updateGalleryImgsWithLock();
                 updateMapsAndDrawThumbnailsWithLock();
-                log.info("[plugin.gallery] scheduled task completed successfully, updated {} images", count);
+                log.info("[plugin.gallery] scheduled sync task completed successfully, updated {} images", count);
             } catch (Exception e) {
-                log.error("[plugin.gallery] scheduled task failed", e);
+                log.error("[plugin.gallery] scheduled sync task failed", e);
             }
         };
 
-        taskScheduler.schedule(task, new CronTrigger(UPDATE_CRON));
+        taskScheduler.schedule(task, new CronTrigger(UPDATE_CRON, schedulerConfig.timeZone));
 
-        log.info("[plugin.gallery] scheduled task registered for daily update at 4:00 AM");
+        log.info("[plugin.gallery] scheduled task registered");
     }
 
     @BotCommand({"update", "sync", "刷新", "更新", "同步"})

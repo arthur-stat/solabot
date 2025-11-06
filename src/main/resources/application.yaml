@@ -8,6 +8,8 @@ app:
   # "http://localhost:8848"
   # "http://192.168.1.10:8848"
 
+  time-zone: "Asia/Shanghai"
+
   parameter:
     cache:
       tmp-img:
