@@ -3,6 +3,7 @@ package com.arth.solabot.adapter.controller.http;
 import com.arth.solabot.adapter.controller.ApiPaths;
 import com.arth.solabot.adapter.controller.http.dto.ApiResponse;
 import com.arth.solabot.adapter.utils.NetworkUtils;
+import com.arth.solabot.core.web.UserFileHandler;
 import com.arth.solabot.plugin.resource.LocalData;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletRequest;
@@ -27,6 +28,7 @@ public class PjskPluginController {
     private final WebClient webClient;
     private final ObjectMapper objectMapper;
     private final LocalData localData;
+    private final UserFileHandler userFileHandler;
 
     /**
      * Mysekai 透视 map 请求
@@ -130,7 +132,7 @@ public class PjskPluginController {
      * 后端返回格式(JSON)：
      * {
      * "success" : 布尔值,
-     * "errormsg" : 字符串，错误信息
+     * "message" : 字符串，消息
      * }
      *
      * @param file
@@ -147,16 +149,17 @@ public class PjskPluginController {
     ) throws IOException {
 
         byte[] body = file.getBytes();
-
+        ApiResponse<String> response = new ApiResponse<>();
         switch (filetype) {
             case "mysekai":
                 break;
             case "suite":
+                response = userFileHandler.handleUploadedSuite(body, region);
                 break;
             default:
                 throw new IllegalArgumentException("未知的 filetype: " + filetype);
         }
-
-        return ApiResponse.success("上传成功");
+        return response;
+        //return ApiResponse.success("上传成功");
     }  //TODO:与前端对接
 }

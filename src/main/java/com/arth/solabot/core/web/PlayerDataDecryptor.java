@@ -1,4 +1,4 @@
-package com.arth.solabot.plugin.custom.pjsk.utils;
+package com.arth.solabot.core.web;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -12,7 +12,7 @@ import javax.crypto.spec.SecretKeySpec;
 import java.util.*;
 
 
-public final class Decryptor {
+public final class PlayerDataDecryptor {
 
     public enum Region {JP, CN, TW, KR, EN}
 
@@ -54,15 +54,15 @@ public final class Decryptor {
     private byte[] plainBytes;
     private ObjectMapper objectMapper;
 
-    private Decryptor(Region region) {
+    private PlayerDataDecryptor(Region region) {
         this.region = Objects.requireNonNull(region, "region");
     }
 
     /**
      * 静态工厂：按 region 创建实例
      */
-    public static Decryptor forRegion(ObjectMapper objectMapper, Region region) {
-        Decryptor builder = new Decryptor(region);
+    public static PlayerDataDecryptor forRegion(ObjectMapper objectMapper, Region region) {
+        PlayerDataDecryptor builder = new PlayerDataDecryptor(region);
         builder.objectMapper = objectMapper;
         return builder;
     }
@@ -71,7 +71,7 @@ public final class Decryptor {
      * 注入 Spring 管理的 ObjectMapper。
      * 推荐在调用 decrypt() 前注入。
      */
-    public Decryptor withObjectMapper(ObjectMapper objectMapper) {
+    public PlayerDataDecryptor withObjectMapper(ObjectMapper objectMapper) {
         this.objectMapper = Objects.requireNonNull(objectMapper);
         return this;
     }
@@ -84,7 +84,7 @@ public final class Decryptor {
      * @return this
      * @throws Exception 发生解密或填充错误时抛出
      */
-    public Decryptor decrypt(byte[] cipherBody) throws Exception {
+    public PlayerDataDecryptor decrypt(byte[] cipherBody) throws Exception {
         if (cipherBody == null) throw new IllegalArgumentException("cipherBody == null");
         KeySet ks = KEYSETS.get(region);
         if (ks == null) throw new IllegalStateException("Missing keyset for region: " + region);
@@ -100,7 +100,7 @@ public final class Decryptor {
     /**
      * 便捷：接受 Base64 编码的密文字符串，解码后再执行 decrypt(byte[]).
      */
-    public Decryptor decryptFromBase64(String base64Cipher) throws Exception {
+    public PlayerDataDecryptor decryptFromBase64(String base64Cipher) throws Exception {
         if (base64Cipher == null) throw new IllegalArgumentException("base64Cipher == null");
         byte[] cipherBytes = Base64.getDecoder().decode(base64Cipher);
         return decrypt(cipherBytes);
@@ -129,7 +129,7 @@ public final class Decryptor {
     /**
      * 重置以便重复使用实例
      */
-    public Decryptor reset() {
+    public PlayerDataDecryptor reset() {
         this.plainBytes = null;
         return this;
     }

@@ -43,12 +43,12 @@ document.addEventListener("DOMContentLoaded",()=>{
             }).then((response) => {
                     response.json().then(data => {
                         console.log(data)
-                        if(data.success){
-                            var date = new Date(data.suiteTimestamp)
+                        if(data.code / 100 === 200){
+                            //var date = new Date(data.code)
                             showCustomToast('success', '上传成功', '资料上传成功！快去群里试试吧', 4000);
-                            showCustomToast('info', '数据日期', '数据日期为'+date, 4000);
+                            //showCustomToast('info', '数据日期', '数据日期为'+date, 4000);
                         }else {
-                            showCustomToast('error', '出现错误', '出现错误，请联系管理员.' + response.message, 4000);
+                            showCustomToast('error', '出现错误', '出现错误，请联系管理员.' + response.message + "\mError code:"+response.code, 4000);
                         }
                     })
             })
