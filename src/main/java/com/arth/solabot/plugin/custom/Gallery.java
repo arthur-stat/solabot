@@ -15,6 +15,8 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.PathResource;
+import org.springframework.core.io.Resource;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.support.CronTrigger;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -31,10 +33,11 @@ import java.util.*;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.stream.Stream;
 
 /**
- * 该插件依赖于外部程序 BaiduPCS-Go
+ * 通过两个读写锁解决多线程竞态风险
  */
 @Slf4j
 @BotPlugin(value = {"看"}, glued = true)
@@ -47,15 +50,23 @@ public class Gallery extends Plugin {
     private String AUTH_TOKEN;
     @Value("${app.parameter.plugin.gallery.pic-api}")
     private String PIC_URL;
+    @Value("${app.parameter.plugin.gallery.sync-delete}")
+    private boolean SYNC_DELETE;  // 同步时是否也同步删除
     @Value("${app.parameter.plugin.gallery.update-ttl}")
     private int UPDATE_TTL;
     @Value("${app.parameter.plugin.gallery.update-cron}")
     private String UPDATE_CRON;
 
+    /* 画廊普通图片写锁（该锁颗粒度极小，仅为了保证短时间内临界区资源的完整） */
+    private static final ReentrantReadWriteLock imgLock = new ReentrantReadWriteLock();
+    /* 画廊缩略预览图写锁（该锁作用于整个缩略图生成，但通过 Future 避免锁释放后被阻塞线程重复进行更新） */
+    private static final ReentrantReadWriteLock thumbnailLock = new ReentrantReadWriteLock();
+    private static volatile CompletableFuture<Void> updatingFuture;
+
     private Instant lastUpdateTime = null;
-    private Map<String, List<String>> roles = new HashMap<>();              // role → set(id)
-    private List<String> ids = new ArrayList<>();
-    private static final Map<String, FilePair> idToFile = new HashMap<>();  // id → (role, fileName)，作为锁记录（因此设为 final）
+    private static Map<String, List<String>> roles = new HashMap<>();  // role → set(id)
+    private static List<String> ids = new ArrayList<>();
+    private static Map<String, FilePair> idToFile = new HashMap<>();   // id → (role, fileName)，全局扁平化、不区分 role
     private final Random rand = new Random();
 
     private final Sender sender;
@@ -142,8 +153,8 @@ public class Gallery extends Plugin {
     public void registerTask() {
         Runnable task = () -> {
             try {
-                int count = updateGalleryImgs();
-                updateMapsAndDrawThumbnails();
+                int count = updateGalleryImgsWithLock();
+                updateMapsAndDrawThumbnailsWithLock();
                 log.info("[plugin.gallery] scheduled task completed successfully, updated {} images", count);
             } catch (Exception e) {
                 log.error("[plugin.gallery] scheduled task failed", e);
@@ -155,12 +166,12 @@ public class Gallery extends Plugin {
         log.info("[plugin.gallery] scheduled task registered for daily update at 4:00 AM");
     }
 
-    @BotCommand({"update", "刷新", "更新"})
+    @BotCommand({"update", "sync", "刷新", "更新", "同步"})
     public void update(ParsedPayloadDTO payload) {
         try {
-            int count = updateGalleryImgs();
-            updateMapsAndDrawThumbnails();
-            sender.replyText(payload, "已同步至最新图库...更新了" + count + "张图片");
+            int count = updateGalleryImgsWithLock();
+            updateMapsAndDrawThumbnailsWithLock();
+            sender.replyText(payload, "已同步至最新图库……更新了" + count + "张图片");
         } catch (Exception e) {
             sender.replyText(payload, "同步图库失败：" + e.getCause());
         }
@@ -172,24 +183,44 @@ public class Gallery extends Plugin {
     // ***** ============= helper ============= *****
 
 
-    public static FilePair getFilePairByPid(String pid) throws IOException {
-        return idToFile.get(pid);
+    public static FilePair getFilePairByPidWithLock(String pid) {
+        imgLock.readLock().lock();
+        try {
+            return idToFile.get(pid);
+        } catch (Exception e) {
+            log.error("[plugin.gallery] concurrency error");
+            throw e;
+        } finally {
+            imgLock.readLock().unlock();
+        }
+    }
+
+    public static Resource getThumbnailWithLock(Path path) {
+        thumbnailLock.readLock().lock();
+        try {
+            return new PathResource(path);
+        } catch (Exception e) {
+            log.error("[plugin.gallery] concurrency error");
+            throw e;
+        } finally {
+            thumbnailLock.readLock().unlock();
+        }
     }
 
     private void tryUpdateGallery() {
         if (lastUpdateTime == null || Duration.between(lastUpdateTime, Instant.now()).toHours() > UPDATE_TTL) {
-            updateGalleryImgs();
-            updateMapsAndDrawThumbnails();
+            updateGalleryImgsWithLock();
+            updateMapsAndDrawThumbnailsWithLock();
         }
     }
 
-    private int updateGalleryImgs() {
+    private int updateGalleryImgsWithLock() {
         log.info("[plugin.gallery] start syncing gallery...");
         int count = 0;
 
         // 依 idToFile 作为判断图片是否已否存在的标准，如果 idToFile 尚未初始化，则先遍历一次本地路径构建缓存
         if (idToFile == null || idToFile.isEmpty()) {
-            updateMapsAndDrawThumbnails();
+            updateMapsAndDrawThumbnailsWithLock();
         }
 
         try {
@@ -208,12 +239,29 @@ public class Gallery extends Plugin {
 
                 JsonNode picsArr = roleNode.get("pics");
                 if (picsArr != null && picsArr.isArray()) {
+
+                    // 如果 SYNC_DELETE=true，则需要考虑删除已不存在于最新元数据集合中的图片文件（后续更新映射表是以文件为依据的）
+                    Set<String> newIdsForRole = null;
+                    if (SYNC_DELETE && roles != null && roles.get(roleName) != null) {
+                        newIdsForRole = new HashSet<>(roles.get(roleName).size());
+                    }
+
                     for (JsonNode pic : picsArr) {
                         String pid = pic.get("pid").asText();
 
+                        if (newIdsForRole != null) {
+                            newIdsForRole.add(pid);
+                        }
+
                         boolean shouldDownload;
-                        synchronized (idToFile) {
+                        imgLock.writeLock().lock();
+                        try {
                             shouldDownload = !idToFile.containsKey(pid);
+                        } catch (Exception e) {
+                            log.error("[plugin.gallery] concurrency error", e);
+                            throw e;
+                        } finally {
+                            imgLock.writeLock().unlock();
                         }
 
                         if (!shouldDownload) continue;
@@ -225,12 +273,29 @@ public class Gallery extends Plugin {
                         String fileName = future.get();
                         log.debug("[plugin.gallery] downloaded image {}", fileName);
 
-                        synchronized (idToFile) {
+                        imgLock.writeLock().lock();
+                        try {
                             if (!idToFile.containsKey(pid)) {
                                 idToFile.put(pid, new FilePair(roleName, fileName));
                                 count++;
                             }
+                        } catch (Exception e) {
+                            log.error("[plugin.gallery] concurrency error", e);
+                            throw e;
+                        } finally {
+                            imgLock.writeLock().unlock();
                         }
+                    }
+
+                    if (newIdsForRole != null) {
+                        HashSet<String> oldIdsForRole = new HashSet<>(roles.get(roleName));
+                        oldIdsForRole.removeAll(newIdsForRole);
+                        // 此处不需要更新映射表，后续通过遍历文件进行统一更新
+                        for (String removeId : oldIdsForRole) {
+                            Path path = localData.getGalleryImgPath(removeId);
+                            fileUtils.tryDeleteFile(path);
+                        }
+                        log.debug("[plugin.gallery] deleted {} expired images for role \"{}\"", oldIdsForRole.size(), roleName);
                     }
                 }
             }
@@ -244,20 +309,64 @@ public class Gallery extends Plugin {
     }
 
     /**
-     * 更新 Roles 映射表，同时绘制各角色缩略图
+     * 更新映射表，同时绘制各角色缩略图（有锁，且通过 Future 避免重复执行）
+     */
+    private void updateMapsAndDrawThumbnailsWithLock() {
+        CompletableFuture<Void> currentFuture = updatingFuture;
+
+        // 如果其他线程已持有缩略图锁（正在更新），则等待其更新完成后直接返回，不重复尝试更新
+        if (currentFuture != null) {
+            currentFuture.join();
+            return;
+        }
+
+        // 尝试获取锁
+        if (thumbnailLock.writeLock().tryLock()) {
+            CompletableFuture<Void> future = null;
+            try {
+                // 创建新 Future 实例
+                future = new CompletableFuture<>();
+                updatingFuture = future;
+
+                // 执行更新逻辑
+                updateMapsAndDrawThumbnails();
+                // 标记完成
+                future.complete(null);
+
+            } catch (Exception e) {
+                if (future != null) future.completeExceptionally(e);
+                log.error("[plugin.gallery] concurrency error");
+                throw e;
+            } finally {
+                updatingFuture = null;
+                thumbnailLock.writeLock().unlock();
+            }
+        } else {
+            // 双重检查（未能获取到锁，等待更新完成）
+            CompletableFuture<Void> waitingFuture = updatingFuture;
+            if (waitingFuture != null) {
+                waitingFuture.join();
+            }
+        }
+    }
+
+    /**
+     * 更新映射表，同时绘制各角色缩略图（无锁）
+     * 通过遍历本地文件，同时更新角色映射表、文件名映射表并绘制缩略图（如果无更新则跳过绘制）（即新映射的依据是文件）
      */
     private void updateMapsAndDrawThumbnails() {
         Map<String, List<String>> newRoles = new HashMap<>((roles != null) ? roles.size() : 16);
-        idToFile.clear();
+        Map<String, FilePair> newIdToFile = new HashMap<>((idToFile != null) ? idToFile.size() : 16);
 
         try {
             Files.createDirectories(LocalData.GALLERY_THUMBNAILS_BASE);
         } catch (IOException e) {
-            log.error("[plugin.gallery] failed to create thumbnail directory", e);
+            log.error("[plugin.gallery] failed to create thumbnail directory");
         }
 
         try (Stream<Path> roleDirs = Files.list(LocalData.GALLERY_IMG_DIR)) {
             roleDirs.filter(Files::isDirectory).forEach(roleDir -> {
+                // 出于性能考虑的一些初始化逻辑（设置合适的初始容量）
                 String roleName = roleDir.getFileName().toString();
                 int mapSize = 16;
                 if (roles != null) {
@@ -268,18 +377,20 @@ public class Gallery extends Plugin {
                 }
                 Map<String, String> idToFileOfRole = new HashMap<>(mapSize);
 
+                // 遍历角色对应的图库，更新临时映射表
                 try (Stream<Path> files = Files.list(roleDir)) {
                     files.filter(Files::isRegularFile).forEach(file -> {
                         String fileName = file.getFileName().toString();
                         String id = fileName.contains(".") ? fileName.substring(0, fileName.lastIndexOf('.')) : fileName;
                         idToFileOfRole.put(id, fileName);
-                        idToFile.put(id, new FilePair(roleName, fileName));
+                        newIdToFile.put(id, new FilePair(roleName, fileName));
                     });
                 } catch (IOException e) {
                     log.error("[plugin.gallery] failed to list files for role: {}", roleName, e);
                 }
 
-                if (!idToFileOfRole.isEmpty()) {
+                // 当且仅当缩略图的 id 集合较之旧版本发生变化时才考虑更新缩略图（图片太多时，绘制缩略图比较花时间）
+                if (roles == null || roles.get(roleName) == null || !idToFileOfRole.keySet().equals(new HashSet<>(roles.get(roleName)))) {
                     newRoles.put(roleName, new ArrayList<>(idToFileOfRole.keySet()));
 
                     try {
@@ -345,6 +456,7 @@ public class Gallery extends Plugin {
         }
 
         roles = newRoles;
+        idToFile = newIdToFile;
         ids = new ArrayList<>(idToFile.keySet());
         log.info("[plugin.gallery] all roles updated and thumbnails generated, found {} imgs", idToFile.size());
     }

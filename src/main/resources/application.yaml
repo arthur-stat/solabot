@@ -33,6 +33,7 @@ app:
         metadata-api: "https://bot.teaphenby.com/api/galleries"
         pic-api: "https://bot.teaphenby.com/api/gallery/{path}"
         auth-token: "arthur-stat"
+        sync-delete: true  # 同步时是否也同步删除
         update-ttl: 24  # 本地图库有效期，单位为小时，超过该时间未更新则在下一次调用时懒加载式进行同步
         update-cron: "0 0 4 * * *"  # 每日凌晨四点时主动同步
 
@@ -43,7 +44,7 @@ app:
 logging:
   level:
     root: INFO
-    com.arth.solabot: DEBUG
+    com.arth.solabot: INFO
 
 websocket:
   suffix: "/onebot/v11/ws"
@@ -56,7 +57,7 @@ websocket:
 spring:
   datasource:
     url: jdbc:postgresql://localhost:5432/appdb
-    username: app 
+    username: app
     password: app
     driver-class-name: org.postgresql.Driver
 
