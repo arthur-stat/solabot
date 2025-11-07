@@ -30,8 +30,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Duration;
 import java.time.Instant;
-import java.util.*;
 import java.util.List;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
@@ -41,7 +41,7 @@ import java.util.stream.Stream;
  * 通过两个读写锁解决多线程竞态风险
  */
 @Slf4j
-@BotPlugin(value = {"看"}, glued = true)
+@BotPlugin(name = {"看"}, glued = true)
 @RequiredArgsConstructor
 public class Gallery extends Plugin {
 
@@ -65,9 +65,9 @@ public class Gallery extends Plugin {
     private static volatile CompletableFuture<Void> updatingFuture;
 
     private Instant lastUpdateTime = null;
-    private static Map<String, List<String>> roles = new HashMap<>();  // role → set(id)
-    private static List<String> ids = new ArrayList<>();
-    private static Map<String, FilePair> idToFile = new HashMap<>();   // id → (role, fileName)，全局扁平化、不区分 role
+    private volatile static Map<String, List<String>> roles = new HashMap<>();  // role → set(id)
+    private volatile static List<String> ids = new ArrayList<>();
+    private volatile static Map<String, FilePair> idToFile = new HashMap<>();   // id → (role, fileName)，全局扁平化、不区分 role
     private final Random rand = new Random();
 
     private final Sender sender;
@@ -99,7 +99,7 @@ public class Gallery extends Plugin {
             
             图库来自luna茶""";
 
-    @BotCommand("index")
+    @BotCommand(command = "index")
     public void index(ParsedPayloadDTO payload, List<String> args) {
         tryUpdateGallery();
 
@@ -129,7 +129,7 @@ public class Gallery extends Plugin {
             }
 
             // 否则解释为别名
-            String role = MemoryData.alias.get(arg);
+            String role = MemoryData.alias.get(arg.trim().toLowerCase(Locale.ROOT));
             if (role != null) {
                 List<String> idsForRole = roles.get(role);
                 if (idsForRole != null) {
@@ -146,7 +146,7 @@ public class Gallery extends Plugin {
     }
 
     @Override
-    @BotCommand("help")
+    @BotCommand(command = "help")
     public void help(ParsedPayloadDTO payload) {
         super.help(payload);
     }
@@ -169,7 +169,7 @@ public class Gallery extends Plugin {
         log.info("[plugin.gallery] scheduled task registered");
     }
 
-    @BotCommand({"update", "sync", "刷新", "更新", "同步"})
+    @BotCommand(command = {"update", "sync", "刷新", "更新", "同步"})
     public void update(ParsedPayloadDTO payload) {
         try {
             int count = updateGalleryImgsWithLock();
@@ -303,7 +303,6 @@ public class Gallery extends Plugin {
                 }
             }
             log.info("[plugin.gallery] successfully synced {} images", count);
-            lastUpdateTime = Instant.now();
             return count;
         } catch (Exception e) {
             log.error("[plugin.gallery] failed to sync", e);
@@ -451,6 +450,9 @@ public class Gallery extends Plugin {
                     } catch (IOException e) {
                         log.error("[plugin.gallery] failed to generate thumbnail for role {}", roleName, e);
                     }
+                } else {
+                    // 未更新时，不要忘记直接把旧内容也放到新容器内（嗯出问题了 debug 我才发现这个问题）
+                    newRoles.put(roleName, roles.get(roleName));
                 }
             });
         } catch (IOException e) {
@@ -461,6 +463,7 @@ public class Gallery extends Plugin {
         roles = newRoles;
         idToFile = newIdToFile;
         ids = new ArrayList<>(idToFile.keySet());
+        lastUpdateTime = Instant.now();
         log.info("[plugin.gallery] all roles updated and thumbnails generated, found {} imgs", idToFile.size());
     }
 

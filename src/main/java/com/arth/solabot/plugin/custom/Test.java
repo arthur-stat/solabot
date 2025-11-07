@@ -19,7 +19,7 @@ import org.springframework.beans.factory.annotation.Value;
 import java.util.List;
 import java.util.Objects;
 
-@BotPlugin({"test"})
+@BotPlugin(name = {"test"})
 @RequiredArgsConstructor
 public class Test extends Plugin {
 
@@ -41,13 +41,13 @@ public class Test extends Plugin {
               - zhuanfa <QQid> <QQname> <text>: 测试链式构造合并转发消息
               - yinyong <args...>: 测试 bot 获取图片引用消息""";
 
-    @BotCommand("index")
+    @BotCommand(command = "index")
     @Override
     public void index(ParsedPayloadDTO payload) {
         sender.replyText(payload, "未给出具体的 test 模块命令，或命令有误");
     }
 
-    @BotCommand("help")
+    @BotCommand(command = "help")
     @Override
     public void help(ParsedPayloadDTO payload) {
         super.help(payload);
@@ -58,7 +58,7 @@ public class Test extends Plugin {
      *
      * @param payload
      */
-    @BotCommand("quanxian")
+    @BotCommand(command = "quanxian")
     @DirectAuthInterceptor(
             scope = AuthScope.USER,
             mode = AuthMode.ALLOW,
@@ -74,7 +74,7 @@ public class Test extends Plugin {
      *
      * @param payload
      */
-    @BotCommand("zuse")
+    @BotCommand(command = "zuse")
     public void zuse(ParsedPayloadDTO payload, List<String> args) {
         long ms = 5000L;  // 默认延迟 5 秒
         try {
@@ -97,7 +97,7 @@ public class Test extends Plugin {
      *
      * @param payload
      */
-    @BotCommand("huifu")
+    @BotCommand(command = "huifu")
     public void huifu(ParsedPayloadDTO payload) {
         sender.replyText(payload, "test");
     }
@@ -105,7 +105,7 @@ public class Test extends Plugin {
     /**
      * 图片发送测试
      */
-    @BotCommand("tu")
+    @BotCommand(command = "tu")
     public void tu(ParsedPayloadDTO payload) {
         String url = endpoint + "/test//saki.jpg";
         sender.replyImage(payload, List.of(url, url, url));
@@ -116,7 +116,7 @@ public class Test extends Plugin {
      *
      * @param payload
      */
-    @BotCommand("shipin")
+    @BotCommand(command = "shipin")
     public void shipin(ParsedPayloadDTO payload) {
         String url = endpoint + "/test/icsk.mp4";
         sender.sendVideo(payload, url);
@@ -127,7 +127,7 @@ public class Test extends Plugin {
      *
      * @param payload
      */
-    @BotCommand("zhuanfa")
+    @BotCommand(command = "zhuanfa")
     public void zhuanfa(ParsedPayloadDTO payload, List<String> args) {
         long idd = Long.parseLong(args.get(0));
         ForwardChainBuilder built = forwardChainBuilder.create()
@@ -144,7 +144,7 @@ public class Test extends Plugin {
      *
      * @param payload
      */
-    @BotCommand("yinyong")
+    @BotCommand(command = "yinyong")
     public void yinyong(ParsedPayloadDTO payload) {
         String replyMsgId = payload.getReplyToMessageId();
         if (replyMsgId == null || replyMsgId.isBlank()) {
@@ -184,7 +184,7 @@ public class Test extends Plugin {
      *
      * @param payload
      */
-    @BotCommand("canshu")
+    @BotCommand(command = "canshu")
     public void canshu(ParsedPayloadDTO payload, List<String> args) {
         sender.replyText(payload, args.toString());
     }

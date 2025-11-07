@@ -1,14 +1,14 @@
 package com.arth.solabot.plugin.custom;
 
 import com.arth.solabot.adapter.controller.ApiPaths;
-import com.arth.solabot.adapter.sender.Sender;
 import com.arth.solabot.adapter.fetcher.http.ImgService;
 import com.arth.solabot.adapter.fetcher.http.ImgService.GifData;
-import com.arth.solabot.core.general.cache.service.ImageCacheService;
+import com.arth.solabot.adapter.sender.Sender;
 import com.arth.solabot.core.bot.dto.ParsedPayloadDTO;
 import com.arth.solabot.core.bot.exception.InternalServerErrorException;
 import com.arth.solabot.core.bot.invoker.annotation.BotCommand;
 import com.arth.solabot.core.bot.invoker.annotation.BotPlugin;
+import com.arth.solabot.core.general.cache.service.ImageCacheService;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
@@ -21,10 +21,10 @@ import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.util.*;
 import java.util.List;
+import java.util.*;
 
-@BotPlugin({"img"})
+@BotPlugin(name = {"img"})
 @RequiredArgsConstructor
 public class Img extends Plugin {
 
@@ -38,7 +38,6 @@ public class Img extends Plugin {
 
     @Getter
     public final String helpText = """
-            命令使用示例：/img l
             img 图片处理模块目前支持以下命令：
               - l 或 left: 镜像对称，左对称
               - r 或 right: 镜像对称，右对称
@@ -55,21 +54,23 @@ public class Img extends Plugin {
               - gif: 转gif
                 在QQ里看起来会更像表情包
               - png: 转png
-              - check: 检查图片url""";
+              - check: 检查图片url
+            
+            命令使用示例：/img l""";
 
     @Override
-    @BotCommand("index")
+    @BotCommand(command = "index")
     public void index(ParsedPayloadDTO payload) {
         sender.replyText(payload, "具体的图片处理命令是什么呢？");
     }
 
     @Override
-    @BotCommand("help")
+    @BotCommand(command = "help")
     public void help(ParsedPayloadDTO payload) {
         super.help(payload);
     }
 
-    @BotCommand({"l", "left"})
+    @BotCommand(command = {"l", "left"})
     public void leftSymmetry(ParsedPayloadDTO payload) throws IOException {
         // 支持静态图片与 GIF（动态）混合输入，输出保持输入顺序
         List<String> urls = imgService.extractImgUrls(payload, true);
@@ -110,7 +111,7 @@ public class Img extends Plugin {
         if (!cacheUrls.isEmpty()) sender.sendImage(payload, cacheUrls);
     }
 
-    @BotCommand({"r", "right"})
+    @BotCommand(command = {"r", "right"})
     public void rightSymmetry(ParsedPayloadDTO payload) throws IOException {
         // 支持静态图片与 GIF（动态）混合输入，输出保持输入顺序
         List<String> urls = imgService.extractImgUrls(payload, true);
@@ -147,7 +148,7 @@ public class Img extends Plugin {
         if (!cacheUrls.isEmpty()) sender.sendImage(payload, cacheUrls);
     }
 
-    @BotCommand({"u", "up"})
+    @BotCommand(command = {"u", "up"})
     public void up(ParsedPayloadDTO payload) throws IOException {
         // 支持静态图片与 GIF（动态）混合输入，输出保持输入顺序
         List<String> urls = imgService.extractImgUrls(payload, true);
@@ -187,7 +188,7 @@ public class Img extends Plugin {
         if (!cacheUrls.isEmpty()) sender.sendImage(payload, cacheUrls);
     }
 
-    @BotCommand({"d", "down"})
+    @BotCommand(command = {"d", "down"})
     public void down(ParsedPayloadDTO payload) throws IOException {
         // 支持静态图片与 GIF（动态）混合输入，输出保持输入顺序
         List<String> urls = imgService.extractImgUrls(payload, true);
@@ -231,7 +232,7 @@ public class Img extends Plugin {
      * @param payload
      * @throws IOException
      */
-    @BotCommand("mid")
+    @BotCommand(command = "mid")
     public void mid(ParsedPayloadDTO payload) throws IOException {
         leftSymmetry(payload);
     }
@@ -243,7 +244,7 @@ public class Img extends Plugin {
      * @param args
      * @throws IOException
      */
-    @BotCommand("mid")
+    @BotCommand(command = "mid")
     public void mid(ParsedPayloadDTO payload, List<String> args) throws IOException {
         if (args == null || args.isEmpty() || args.get(0).equals("l") || args.get(0).equals("left")) {
             leftSymmetry(payload);
@@ -254,7 +255,7 @@ public class Img extends Plugin {
         }
     }
 
-    @BotCommand({"rot", "rotate"})
+    @BotCommand(command = {"rot", "rotate"})
     public void rotate(ParsedPayloadDTO payload, List<String> args) throws IOException {
         int angle = 90;
 
@@ -318,7 +319,7 @@ public class Img extends Plugin {
         if (!cacheUrls.isEmpty()) sender.sendImage(payload, cacheUrls);
     }
 
-    @BotCommand("speed")
+    @BotCommand(command = "speed")
     public void speed(ParsedPayloadDTO payload, List<String> args) throws IOException {
         if (args == null || args.isEmpty()) {
             sender.replyText(payload, "没有指定加速 / 减速倍率哦");
@@ -360,7 +361,7 @@ public class Img extends Plugin {
         if (!cacheUrls.isEmpty()) sender.sendImage(payload, cacheUrls);
     }
 
-    @BotCommand({"cut", "cutout"})
+    @BotCommand(command = {"cut", "cutout"})
     public void cutout(ParsedPayloadDTO payload, List<String> args) throws IOException {
         int threshold = 100;
 
@@ -490,7 +491,7 @@ public class Img extends Plugin {
         if (!cacheUrls.isEmpty()) sender.sendImage(payload, cacheUrls);
     }
 
-    @BotCommand("gray")
+    @BotCommand(command = "gray")
     public void gray(ParsedPayloadDTO payload) throws IOException {
         List<String> urls = imgService.extractImgUrls(payload, true);
         if (urls == null || urls.isEmpty()) return;
@@ -536,7 +537,7 @@ public class Img extends Plugin {
         if (!cacheUrls.isEmpty()) sender.sendImage(payload, cacheUrls);
     }
 
-    @BotCommand("invert")
+    @BotCommand(command = "invert")
     public void invert(ParsedPayloadDTO payload) throws IOException {
         List<String> urls = imgService.extractImgUrls(payload, true);
         if (urls == null || urls.isEmpty()) return;
@@ -572,7 +573,7 @@ public class Img extends Plugin {
         if (!cacheUrls.isEmpty()) sender.sendImage(payload, cacheUrls);
     }
 
-    @BotCommand("mirror")
+    @BotCommand(command = "mirror")
     public void mirror(ParsedPayloadDTO payload) throws IOException {
         List<String> urls = imgService.extractImgUrls(payload, true);
         if (urls == null || urls.isEmpty()) return;
@@ -618,17 +619,17 @@ public class Img extends Plugin {
         if (!cacheUrls.isEmpty()) sender.sendImage(payload, cacheUrls);
     }
 
-    @BotCommand("gif")
+    @BotCommand(command = "gif")
     public void gif(ParsedPayloadDTO payload) throws IOException {
         toType(payload, "gif");
     }
 
-    @BotCommand("png")
+    @BotCommand(command = "png")
     public void png(ParsedPayloadDTO payload) throws IOException {
         toType(payload, "png");
     }
 
-    @BotCommand("check")
+    @BotCommand(command = "check")
     public void check(ParsedPayloadDTO payload) {
         List<String> urls = imgService.extractImgUrls(payload, true);
         if (urls == null || urls.isEmpty()) {

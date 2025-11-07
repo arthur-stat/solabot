@@ -24,8 +24,9 @@ NapCat（OneBot v11）
 
 # to do
 
-1. 组卡器微服务
-2. PJSK 资源管理器（自动检查并拉取最新 master data）
+1. 可观测性
+2. 实现组卡器微服务
+3. PJSK 资源管理器（自动检查并拉取最新 master data 等，统一管理版本资源）
 
 # docker
 

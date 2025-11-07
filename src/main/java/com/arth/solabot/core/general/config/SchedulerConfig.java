@@ -15,7 +15,7 @@ public class SchedulerConfig {
     public final TimeZone timeZone;
 
     @Autowired
-    private SchedulerConfig(@Value("${app.time-zone}") String timeZoneStr) {
+    public SchedulerConfig(@Value("${app.time-zone}") String timeZoneStr) {
         timeZone = TimeZone.getTimeZone(timeZoneStr);
     }
 

@@ -9,18 +9,15 @@ import com.arth.solabot.core.bot.dto.replay.MfaceRef;
 import com.arth.solabot.core.bot.exception.InvalidCommandArgsException;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
-
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.core.io.buffer.DataBuffer;
+import org.springframework.core.io.buffer.DataBufferUtils;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
-import reactor.core.publisher.Mono;
-
-// 新增的 imports（用于流式下载）
-import org.springframework.core.io.buffer.DataBuffer;
-import org.springframework.core.io.buffer.DataBufferUtils;
 import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 import javax.imageio.ImageIO;
 import javax.imageio.ImageReader;
@@ -149,7 +146,7 @@ public class ImgService {
                 return baos.toByteArray();
             }
         } catch (Exception e) {
-            log.error("Failed to get response from " + url, e);
+            log.error("Failed to get response from {}", url, e);
             return null;
         }
     }

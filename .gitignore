@@ -48,7 +48,7 @@ __pycache__/
 *.py[cod]
 
 ### static resource ###
-static/pjsk/
-static/box/
+archive/pjsk/
+archive/box/
 data/LunabotGallery/
 data/LunabotGalleryThumbnail/

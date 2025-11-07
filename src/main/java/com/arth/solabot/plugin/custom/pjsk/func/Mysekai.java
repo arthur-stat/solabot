@@ -3,7 +3,6 @@ package com.arth.solabot.plugin.custom.pjsk.func;
 import com.arth.solabot.adapter.sender.action.ActionChainBuilder;
 import com.arth.solabot.core.bot.dto.ParsedPayloadDTO;
 import com.arth.solabot.core.bot.exception.InternalServerErrorException;
-import com.arth.solabot.core.bot.exception.ResourceNotFoundException;
 import com.arth.solabot.core.general.database.domain.PjskBinding;
 import com.arth.solabot.plugin.custom.Pjsk;
 import com.arth.solabot.plugin.resource.LocalData;

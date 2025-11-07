@@ -1,7 +1,6 @@
 package com.arth.solabot.core.bot.exception.handler;
 
 import com.arth.solabot.adapter.sender.Sender;
-import com.arth.solabot.adapter.io.SessionRegistry;
 import com.arth.solabot.core.bot.dto.ParsedPayloadDTO;
 import com.arth.solabot.core.bot.exception.BusinessException;
 import lombok.RequiredArgsConstructor;
@@ -21,7 +20,6 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class BusinessExceptionHandlerAspect {
 
-    private final SessionRegistry sessionRegistry;
     private final Sender sender;
 
     /**
@@ -44,7 +42,7 @@ public class BusinessExceptionHandlerAspect {
         try {
             return joinPoint.proceed();
         } catch (BusinessException e) {
-            log.debug("[core.bot: business exception] " + e.getErrorCode() + ": {}", e.getMessage(), e);
+            log.debug("[core.bot]: business exception {}: {}", e.getErrorCode(), e.getMessage(), e);
             return null;
         }
     }
@@ -56,7 +54,7 @@ public class BusinessExceptionHandlerAspect {
         if ("message".equalsIgnoreCase(behaviour)) {
             sender.replyText(payload, description);
         } else {
-            log.info("[core.bot: business exception] {}", description);
+            log.info("[core.bot]: business exception {}", description);
         }
     }
 }

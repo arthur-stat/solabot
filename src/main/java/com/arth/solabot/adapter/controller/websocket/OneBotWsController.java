@@ -1,8 +1,8 @@
 package com.arth.solabot.adapter.controller.websocket;
 
 import com.arth.solabot.adapter.fetcher.websocket.EchoWaiter;
-import com.arth.solabot.adapter.parser.PayloadParser;
 import com.arth.solabot.adapter.io.SessionRegistry;
+import com.arth.solabot.adapter.parser.PayloadParser;
 import com.arth.solabot.adapter.utils.LogUtils;
 import com.arth.solabot.core.bot.dto.ParsedPayloadDTO;
 import com.arth.solabot.core.bot.exception.BusinessException;

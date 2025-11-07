@@ -1,9 +1,9 @@
 package com.arth.solabot.adapter.sender.impl;
 
 import com.arth.solabot.adapter.fetcher.websocket.EchoWaiter;
+import com.arth.solabot.adapter.io.SessionRegistry;
 import com.arth.solabot.adapter.sender.Sender;
 import com.arth.solabot.adapter.sender.action.SimpleActionBuilder;
-import com.arth.solabot.adapter.io.SessionRegistry;
 import com.arth.solabot.core.bot.dto.ParsedPayloadDTO;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -16,7 +16,10 @@ import org.springframework.web.socket.WebSocketSession;
 
 import java.io.IOException;
 import java.time.Duration;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
@@ -244,7 +247,7 @@ public class OneBotSender implements Sender {
         pushActionJSON(selfId, req.toString());
 
         try {
-            String raw = echoWaiter.await(echo, timeout.toMillis()); // 等待 controller 完成的回包
+            String raw = echoWaiter.await(echo, timeout.toMillis());  // 等待 controller 完成的回包
             return objectMapper.readTree(raw);
         } catch (Exception e) {
             throw new RuntimeException("request '" + action + "' failed/timeout", e);

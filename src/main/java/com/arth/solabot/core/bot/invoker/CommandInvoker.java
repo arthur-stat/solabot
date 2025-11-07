@@ -74,7 +74,7 @@ public class CommandInvoker {
             return runGrouped(payload, holder, groupSteps(stepsTokens, holder));
 
         } catch (BusinessException e) {
-            log.error(e.getMessage(), e);
+            // 继续抛出，交给业务异常处理器处理
             throw e;
         } catch (Throwable e) {
             log.error("[core.bot.invoker] unexpected error while invoking", e);
@@ -288,6 +288,7 @@ public class CommandInvoker {
     }
 
     /* ===================== data records ===================== */
+
     private record Parsed(String root, List<String> subAndArgs, String rawNoSlash) {
     }
 

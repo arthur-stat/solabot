@@ -7,10 +7,10 @@ import java.lang.annotation.*;
 @Documented
 public @interface BotPlugin {
     /**
-     * 模块别名注解
+     * 插件模块别名注解
      * 例如，将 "/img" 与 "/图片" 映射到同一个插件模块
      */
-    String[] value();
+    String[] name();
 
     /**
      * 是否启用粘合模式

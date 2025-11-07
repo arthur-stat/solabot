@@ -1,8 +1,8 @@
 package com.arth.solabot.plugin.custom.pjsk.objects;
 
+import com.arth.solabot.plugin.custom.pjsk.objects.enums.CardAttributes;
 import com.arth.solabot.plugin.custom.pjsk.objects.enums.CardCharacters;
 import com.arth.solabot.plugin.custom.pjsk.objects.enums.CardRarities;
-import com.arth.solabot.plugin.custom.pjsk.objects.enums.CardAttributes;
 import com.fasterxml.jackson.databind.JsonNode;
 import lombok.Data;
 

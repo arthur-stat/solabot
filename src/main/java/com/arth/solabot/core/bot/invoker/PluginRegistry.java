@@ -19,8 +19,13 @@ import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
 import java.lang.reflect.Method;
-import java.util.*;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+
+import static java.lang.reflect.Modifier.isPublic;
 
 /**
  * 扫描插件包 plugin 下带有 @BotPlugin 注解的 public 类及其带有 @BotCommand 注解的 public 方法，
@@ -65,7 +70,7 @@ public class PluginRegistry {
 
             for (var bd : scanner.findCandidateComponents(PLUGIN_BASE_PACKAGE)) {
                 Class<?> clazz = Class.forName(bd.getBeanClassName());
-                if (!java.lang.reflect.Modifier.isPublic(clazz.getModifiers())) continue;
+                if (!isPublic(clazz.getModifiers())) continue;
 
                 BotPlugin pluginAnn = clazz.getAnnotation(BotPlugin.class);
                 if (pluginAnn == null) continue;
@@ -81,10 +86,10 @@ public class PluginRegistry {
                 for (Method m : clazz.getMethods()) {
                     BotCommand cmdAnn = m.getAnnotation(BotCommand.class);
                     if (cmdAnn == null) continue;
-                    if (!java.lang.reflect.Modifier.isPublic(m.getModifiers())) continue;
+                    if (!isPublic(m.getModifiers())) continue;
 
                     CommandHandler handler = createHandler(instance, m);
-                    for (String alias : cmdAnn.value()) {
+                    for (String alias : cmdAnn.command()) {
                         String key = alias == null ? "" : alias.trim().toLowerCase(Locale.ROOT);
                         holder.addHandler(key, handler);
                         log.info("[core.bot.invoker] command alias `{}` of plugin {} is registered", key, clazz.getSimpleName());
@@ -92,7 +97,7 @@ public class PluginRegistry {
                 }
 
                 // 为每个模块别名注册
-                for (String alias : pluginAnn.value()) {
+                for (String alias : pluginAnn.name()) {
                     String key = alias.trim().toLowerCase(Locale.ROOT);
                     if (pluginRegistryMap.putIfAbsent(key, holder) != null) {
                         log.warn("[core.bot.invoker] duplicate plugin alias detected: {}", key);
@@ -104,14 +109,14 @@ public class PluginRegistry {
                     String help = p.getHelpText();
                     if (help != null) {
                         helpTextMap.put(clazz.getSimpleName(), help);
-                        for (String alias : pluginAnn.value()) {
+                        for (String alias : pluginAnn.name()) {
                             if (alias != null && !alias.isBlank()) {
                                 helpTextMap.putIfAbsent(alias.trim().toLowerCase(Locale.ROOT), help);
                             }
                         }
                     }
                 }
-                log.info("[core.bot.invoker] registered plugin: {} -> {}", Arrays.toString(pluginAnn.value()), clazz.getSimpleName());
+                log.info("[core.bot.invoker] registered plugin: {} -> {}", Arrays.toString(pluginAnn.name()), clazz.getSimpleName());
             }
         } catch (Exception e) {
             log.error("[core.bot.invoker] failed to initialize PluginRegistry", e);
@@ -299,8 +304,13 @@ public class PluginRegistry {
         return best;
     }
 
-    public String getPluginHelpText(String pluginSimpleName) {
-        return helpTextMap.getOrDefault(pluginSimpleName, "（暂无帮助文本）");
+    public String getPluginHelpText(String simplePluginName) {
+        return helpTextMap.getOrDefault(simplePluginName, "（暂无帮助文本）");
+    }
+
+    public String getPluginHelpText(Class<? extends Plugin> plugin) {
+        String[] simplePluginName = plugin.getAnnotation(BotPlugin.class).name();
+        return getPluginHelpText(simplePluginName[0]);
     }
 
     public void callPluginHelp(ParsedPayloadDTO payload, String pluginName) {

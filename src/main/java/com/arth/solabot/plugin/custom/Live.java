@@ -1,20 +1,20 @@
 package com.arth.solabot.plugin.custom;
 
-import com.arth.solabot.adapter.sender.Sender;
 import com.arth.solabot.adapter.io.SessionRegistry;
+import com.arth.solabot.adapter.sender.Sender;
 import com.arth.solabot.core.bot.authorization.annotation.DirectAuthInterceptor;
 import com.arth.solabot.core.bot.authorization.model.AuthMode;
 import com.arth.solabot.core.bot.authorization.model.AuthScope;
 import com.arth.solabot.core.bot.dto.ParsedPayloadDTO;
 import com.arth.solabot.core.bot.exception.ExternalServiceErrorException;
+import com.arth.solabot.core.bot.invoker.annotation.BotCommand;
+import com.arth.solabot.core.bot.invoker.annotation.BotPlugin;
 import com.arth.solabot.core.general.database.domain.StreamerAlias;
 import com.arth.solabot.core.general.database.domain.StreamerSubscription;
 import com.arth.solabot.core.general.database.mapper.StreamerAliasMapper;
 import com.arth.solabot.core.general.database.mapper.StreamerSubscriptionMapper;
 import com.arth.solabot.core.general.database.service.StreamerAliasService;
 import com.arth.solabot.core.general.database.service.StreamerSubscriptionService;
-import com.arth.solabot.core.bot.invoker.annotation.BotCommand;
-import com.arth.solabot.core.bot.invoker.annotation.BotPlugin;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -38,7 +38,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * 该插件目前还不能正常使用。目前尚不能够自动检测到开播后推送订阅消息，处于尚未完成的状态。
  */
 @Slf4j
-@BotPlugin({"live"})
+@BotPlugin(name = {"live"})
 @RequiredArgsConstructor
 public class Live extends Plugin {
 
@@ -101,18 +101,18 @@ public class Live extends Plugin {
     }
 
     @Override
-    @BotCommand("index")
+    @BotCommand(command = "index")
     public void index(ParsedPayloadDTO payload) {
         sender.replyText(payload, helpText);
     }
 
     @Override
-    @BotCommand("help")
+    @BotCommand(command = "help")
     public void help(ParsedPayloadDTO payload) {
         super.help(payload);
     }
 
-    @BotCommand({"查询", "查房"})
+    @BotCommand(command = {"查询", "查房"})
     public void query(ParsedPayloadDTO payload, List<String> args) {
         for (String s : args) {
             Long streamId = aliasToStreamId.get(s);
@@ -140,7 +140,7 @@ public class Live extends Plugin {
         }
     }
 
-    @BotCommand({"订阅"})
+    @BotCommand(command = {"订阅"})
     public void subscribe(ParsedPayloadDTO payload, List<String> args) {
         Long userId = payload.getUserId();
         Long groupId = payload.getGroupId();
@@ -195,7 +195,7 @@ public class Live extends Plugin {
         }
     }
 
-    @BotCommand({"退订"})
+    @BotCommand(command = {"退订"})
     public void unsubscribe(ParsedPayloadDTO payload, List<String> args) {
         Long userId = payload.getUserId();
         Long groupId = payload.getGroupId();
@@ -252,7 +252,7 @@ public class Live extends Plugin {
         }
     }
 
-    @BotCommand({"alias"})
+    @BotCommand(command = {"alias"})
     public void alias(ParsedPayloadDTO payload, List<String> args) {
         for (int i = 0; i < args.size(); i += 2) {
             Long streamId;
@@ -307,7 +307,7 @@ public class Live extends Plugin {
         }
     }
 
-    @BotCommand("dev")
+    @BotCommand(command = "dev")
     @DirectAuthInterceptor(scope = AuthScope.USER, mode = AuthMode.ALLOW, targets = "1093664084")
     public void dev(ParsedPayloadDTO payload) {
         sender.sendText(payload, "订阅表：" + streamIdToSubscription +

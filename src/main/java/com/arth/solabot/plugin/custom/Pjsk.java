@@ -4,10 +4,10 @@ import com.arth.solabot.adapter.controller.ApiPaths;
 import com.arth.solabot.adapter.fetcher.http.ImgService;
 import com.arth.solabot.adapter.sender.Sender;
 import com.arth.solabot.adapter.sender.action.ActionChainBuilder;
-import com.arth.solabot.core.general.cache.service.ImageCacheService;
 import com.arth.solabot.core.bot.dto.ParsedPayloadDTO;
 import com.arth.solabot.core.bot.invoker.annotation.BotCommand;
 import com.arth.solabot.core.bot.invoker.annotation.BotPlugin;
+import com.arth.solabot.core.general.cache.service.ImageCacheService;
 import com.arth.solabot.core.general.database.mapper.PjskBindingMapper;
 import com.arth.solabot.plugin.custom.pjsk.func.General;
 import com.arth.solabot.plugin.custom.pjsk.func.Mysekai;
@@ -25,7 +25,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 @Slf4j
-@BotPlugin({"pjsk"})
+@BotPlugin(name = {"pjsk"})
 @RequiredArgsConstructor
 public class Pjsk extends Plugin {
 
@@ -33,37 +33,37 @@ public class Pjsk extends Plugin {
     public final String helpText = "请通过 /help 查看 pjsk 模块具体的命令";
 
     @Override
-    @BotCommand("index")
+    @BotCommand(command = "index")
     public void index(ParsedPayloadDTO payload) {
         sender.replyText(payload, "请接 pjsk 模块的具体命令哦");
     }
 
     @Override
-    @BotCommand("help")
+    @BotCommand(command = "help")
     public void help(ParsedPayloadDTO payload) {
         sender.replyText(payload, helpText);
     }
 
     // ***** ============= General ============= *****
 
-    @BotCommand({"绑定", "bind"})
+    @BotCommand(command = {"绑定", "bind"})
     public void bind(ParsedPayloadDTO payload, List<String> args) {
         General.bind(getCtx(), payload, args);
     }
 
-    @BotCommand({"查询绑定", "bound"})
+    @BotCommand(command = {"查询绑定", "bound"})
     public void bound(ParsedPayloadDTO payload) {
         General.bound(getCtx(), payload);
     }
 
-    @BotCommand({"默认服务器", "默认", "default"})
+    @BotCommand(command = {"默认服务器", "默认", "default"})
     public void setDefaultServerRegion(ParsedPayloadDTO payload, List<String> args) {
         General.setDefaultServerRegion(getCtx(), payload, args);
     }
 
     // ***** ============= Suite ============= *****
 
-    @BotCommand({"box", "卡牌一览"})
+    @BotCommand(command = {"box", "卡牌一览"})
     public void box(ParsedPayloadDTO payload,List<String> args) {
         Suite.box(getCtx(), payload,args);
     }
@@ -72,12 +72,12 @@ public class Pjsk extends Plugin {
 
     // ***** ============= Mysekai ============= *****
 
-    @BotCommand({"msm", "msr"})
+    @BotCommand(command = {"msm", "msr"})
     public void msm(ParsedPayloadDTO payload) {
         Mysekai.msm(getCtx(), payload);
     }
 
-    @BotCommand({"msm", "msr"})
+    @BotCommand(command = {"msm", "msr"})
     public void msm(ParsedPayloadDTO payload, List<String> args) {
         if (args == null || args.isEmpty()) {
             msm(payload);

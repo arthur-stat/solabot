@@ -1,13 +1,15 @@
 package com.arth.solabot.adapter.utils;
 
-import java.util.*;
-import java.util.regex.*;
-
 import com.arth.solabot.core.bot.dto.ReplayedMessagePayloadDTO;
 import com.arth.solabot.core.bot.dto.replay.AudioRef;
 import com.arth.solabot.core.bot.dto.replay.ImageRef;
 import com.arth.solabot.core.bot.dto.replay.MediaSourceType;
 import com.arth.solabot.core.bot.dto.replay.VideoRef;
+
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class CQUtils {
 

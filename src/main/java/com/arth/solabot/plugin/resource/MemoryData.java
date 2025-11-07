@@ -43,8 +43,8 @@ public final class MemoryData {
         alias.put("花", "mnr");
         alias.put("花花", "mnr");
         alias.put("花栗鼠", "mnr");
-        alias.put("花小实", "mnr");
-        alias.put("花小花", "mnr");
+        alias.put("小实", "mnr");
+        alias.put("小花", "mnr");
 
         alias.put("hrk", "hrk");
         alias.put("桐谷遥", "hrk");
@@ -83,10 +83,11 @@ public final class MemoryData {
         alias.put("青柳冬弥", "toya");
         alias.put("冬弥", "toya");
         alias.put("董秘", "toya");
+        alias.put("咖", "toya");
 
         alias.put("tks", "tks");
         alias.put("天马司", "tks");
-        alias.put("马司", "tks");
+        alias.put("司", "tks");
 
         alias.put("emu", "emu");
         alias.put("凤笑梦", "emu");
@@ -105,6 +106,7 @@ public final class MemoryData {
         alias.put("rui", "rui");
         alias.put("神代类", "rui");
         alias.put("类", "rui");
+        alias.put("沈大雷", "rui");
 
         alias.put("knd", "knd");
         alias.put("k", "knd");
@@ -122,12 +124,14 @@ public final class MemoryData {
         alias.put("马", "mfy");
 
         alias.put("ena", "ena");
+        alias.put("enana", "ena");
         alias.put("东云绘名", "ena");
+        alias.put("绘名", "ena");
         alias.put("画", "ena");
         alias.put("姐", "ena");
-        alias.put("enana", "ena");
 
         alias.put("mzk", "mzk");
+        alias.put("amia", "mzk");
         alias.put("晓山瑞希", "mzk");
         alias.put("瑞希", "mzk");
         alias.put("糖", "mzk");

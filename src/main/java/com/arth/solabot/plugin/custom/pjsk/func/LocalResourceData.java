@@ -1,10 +1,10 @@
 package com.arth.solabot.plugin.custom.pjsk.func;
 
 import com.arth.solabot.plugin.custom.Pjsk;
+import com.arth.solabot.plugin.custom.pjsk.objects.PjskCardInfo;
 import com.arth.solabot.plugin.custom.pjsk.objects.enums.CardAttributes;
 import com.arth.solabot.plugin.custom.pjsk.objects.enums.CardCharacters;
 import com.arth.solabot.plugin.custom.pjsk.objects.enums.CardRarities;
-import com.arth.solabot.plugin.custom.pjsk.objects.PjskCardInfo;
 import com.arth.solabot.plugin.resource.LocalData;
 import com.arth.solabot.plugin.resource.MemoryData;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -121,8 +121,8 @@ public final class LocalResourceData {
 //                .bodyToMono(new ParameterizedTypeReference<Map<String, Object>>() {
 //                })
 //                .map(map -> {
-//                    Object value = map.get("assetVersion");
-//                    return value == null ? null : value.toString();
+//                    Object command = map.get("assetVersion");
+//                    return command == null ? null : command.toString();
 //                })
 //                .block();
 //

@@ -15,10 +15,10 @@ import java.nio.file.Path;
 public class LocalData {
 
     /* 服务器本地 Suite 路径 */
-    public static final Path PJSK_SUITE_CN = Path.of("static/pjsk/master_data/suite/cn");
-    public static final Path PJSK_SUITE_JP = Path.of("static/pjsk/master_data/suite/jp");
-    public static final Path PJSK_SUITE_TW = Path.of("static/pjsk/master_data/suite/tw");
-    public static final Path PJSK_SUITE_JSON_BASE = Path.of("static/pjsk/master_data/suite/");
+    public static final Path PJSK_SUITE_CN = Path.of("archive/pjsk/master_data/suite/cn");
+    public static final Path PJSK_SUITE_JP = Path.of("archive/pjsk/master_data/suite/jp");
+    public static final Path PJSK_SUITE_TW = Path.of("archive/pjsk/master_data/suite/tw");
+    public static final Path PJSK_SUITE_JSON_BASE = Path.of("archive/pjsk/master_data/suite/");
 
     /* Mysekai 透视图 map 路径 */
     public static final Path PJSK_MYSEKAI_MAP = Path.of("data/pjsk_user_data/mysekai/draw/map");
@@ -26,11 +26,11 @@ public class LocalData {
     public static final Path PJSK_MYSEKAI_OVERVIEW = Path.of("data/pjsk_user_data/mysekai/draw/overview");
 
     /* 日服 master data 数据路径 */
-    public static final Path PJSK_MASTER_DATA_PATH = Path.of("static/pjsk/master_data");
-    public static final Path PJSK_CARDS = Path.of("static/pjsk/master_data/cards");
+    public static final Path PJSK_MASTER_DATA_PATH = Path.of("archive/pjsk/master_data");
+    public static final Path PJSK_CARDS = Path.of("archive/pjsk/master_data/cards");
 
     /* PJSK Shadowracket 国服 Mysekai 数据抓包转发模块配置文件路径 */
-    public static final Path SHADOWROCKET_MODULE_DOWNLOAD_MYSEKAI_CN = Path.of("static/pjsk/proxy_software_module/shadowrocket/cn_mysekai.txt");
+    public static final Path SHADOWROCKET_MODULE_DOWNLOAD_MYSEKAI_CN = Path.of("archive/pjsk/proxy_software_module/shadowrocket/cn_mysekai.txt");
 
     /* PJSK 卡组渲染器相关资源路径 */
     public static final Path RENDER_BG = Path.of("src/main/resources/static/pjsk/box/background.png");
@@ -38,7 +38,7 @@ public class LocalData {
     public static final Path RENDER_RARITY_BIRTH = Path.of("src/main/resources/static/pjsk/box/rarity_birthday.png");
     public static final Path RENDER_RARITY_STAR = Path.of("src/main/resources/static/pjsk/box/star.png");
     public static final Path RENDER_ATTR_BASE = Path.of("src/main/resources/static/pjsk/box/attribute/");
-    public static final Path RENDER_THUMBNAILS_BASE = Path.of("static/pjsk/master_data/cards/thumbnails/");
+    public static final Path RENDER_THUMBNAILS_BASE = Path.of("archive/pjsk/master_data/cards/thumbnails/");
 
     /* Gallery 画廊服务（看看你的插件）资源路径 */
     public static final Path GALLERY_DIR_NAME = Path.of("LunabotGallery");

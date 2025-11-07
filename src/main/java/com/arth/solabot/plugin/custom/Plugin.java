@@ -4,7 +4,6 @@ import com.arth.solabot.core.bot.dto.ParsedPayloadDTO;
 import com.arth.solabot.core.bot.invoker.PluginRegistry;
 import com.arth.solabot.core.bot.invoker.annotation.BotCommand;
 import com.arth.solabot.core.bot.invoker.annotation.BotPlugin;
-import lombok.Setter;
 
 public abstract class Plugin {
 
@@ -15,12 +14,12 @@ public abstract class Plugin {
         registerTask();  // 注册定时任务，默认无，子类按需重写
     }
 
-    @BotCommand("index")
+    @BotCommand(command = "index")
     public abstract void index(ParsedPayloadDTO payload);
 
-    @BotCommand("help")
+    @BotCommand(command = "help")
     public void help(ParsedPayloadDTO payload) {
-        pluginRegistry.callPluginHelp(payload, this.getClass().getAnnotation(BotPlugin.class).value()[0]);
+        pluginRegistry.callPluginHelp(payload, this.getClass().getAnnotation(BotPlugin.class).name()[0]);
     }
 
     public abstract String getHelpText();

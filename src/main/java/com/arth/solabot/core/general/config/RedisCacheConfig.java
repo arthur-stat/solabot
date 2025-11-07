@@ -32,7 +32,7 @@ public class RedisCacheConfig {
         template.setKeySerializer(new StringRedisSerializer());
         template.setHashKeySerializer(new StringRedisSerializer());
 
-        // 字节数组序列化 value
+        // 字节数组序列化 command
         template.setValueSerializer(RedisSerializer.byteArray());
         template.setHashValueSerializer(RedisSerializer.byteArray());
 

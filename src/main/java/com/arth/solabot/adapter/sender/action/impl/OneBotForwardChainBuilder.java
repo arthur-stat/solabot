@@ -1,7 +1,7 @@
 package com.arth.solabot.adapter.sender.action.impl;
 
-import com.arth.solabot.adapter.sender.action.SimpleActionBuilder;
 import com.arth.solabot.adapter.sender.action.ForwardChainBuilder;
+import com.arth.solabot.adapter.sender.action.SimpleActionBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
