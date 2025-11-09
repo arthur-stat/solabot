@@ -5,10 +5,12 @@ import com.arth.solabot.adapter.sender.Sender;
 import com.arth.solabot.core.bot.dto.ParsedPayloadDTO;
 import com.arth.solabot.core.bot.invoker.annotation.BotCommand;
 import com.arth.solabot.core.bot.invoker.annotation.BotPlugin;
-import com.arth.solabot.core.general.config.SchedulerConfig;
-import com.arth.solabot.core.general.utils.FileUtils;
-import com.arth.solabot.plugin.resource.LocalData;
+import com.arth.solabot.core.infrastructure.LocalData;
+import com.arth.solabot.core.infrastructure.config.SchedulerConfig;
+import com.arth.solabot.core.infrastructure.network.NetworkUtil;
+import com.arth.solabot.core.infrastructure.utils.FileUtils;
 import com.arth.solabot.plugin.resource.MemoryData;
+import com.arth.solabot.plugin.system.Plugin;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -20,7 +22,6 @@ import org.springframework.core.io.PathResource;
 import org.springframework.core.io.Resource;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.support.CronTrigger;
-import org.springframework.web.reactive.function.client.WebClient;
 
 import javax.imageio.ImageIO;
 import java.awt.*;
@@ -30,8 +31,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Duration;
 import java.time.Instant;
-import java.util.List;
 import java.util.*;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
@@ -74,7 +75,7 @@ public class Gallery extends Plugin {
     private final ApiPaths apiPaths;
     private final LocalData localData;
     private final FileUtils fileUtils;
-    private final WebClient webClient;
+    private final NetworkUtil networkUtil;
     private final ObjectMapper objectMapper;
     private final TaskScheduler taskScheduler;
     private final SchedulerConfig schedulerConfig;
@@ -227,12 +228,7 @@ public class Gallery extends Plugin {
         }
 
         try {
-            String jsonResponse = webClient.get()
-                    .uri(METADATA_URL)
-                    .headers(headers -> headers.setBearerAuth(AUTH_TOKEN))
-                    .retrieve()
-                    .bodyToMono(String.class)
-                    .block();
+            String jsonResponse = networkUtil.getStringWithAuthToken(METADATA_URL, AUTH_TOKEN);
 
             ObjectNode metadata = (ObjectNode) objectMapper.readTree(jsonResponse);
 
@@ -272,7 +268,7 @@ public class Gallery extends Plugin {
                         String url = PIC_URL.replace("{path}", pic.get("path").asText());
                         Path saveDir = localData.getGalleryRolePath(roleName);
 
-                        CompletableFuture<String> future = fileUtils.downloadImageAsync(url, saveDir, pid);
+                        CompletableFuture<String> future = networkUtil.downloadImageAsync(url, saveDir, pid);
                         String fileName = future.get();
                         log.debug("[plugin.gallery] downloaded image {}", fileName);
 

@@ -2,10 +2,10 @@ package com.arth.solabot.adapter.controller.http;
 
 import com.arth.solabot.adapter.controller.ApiPaths;
 import com.arth.solabot.adapter.controller.http.dto.ApiResponse;
-import com.arth.solabot.adapter.utils.NetworkUtils;
+import com.arth.solabot.core.infrastructure.LocalData;
+import com.arth.solabot.core.infrastructure.network.NetworkUtil;
+import com.arth.solabot.core.infrastructure.network.service.HttpProxyService;
 import com.arth.solabot.core.web.UserFileHandler;
-import com.arth.solabot.plugin.resource.LocalData;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -16,20 +16,21 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-import org.springframework.web.reactive.function.client.WebClient;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.HashMap;
+import java.util.Map;
 
 @Slf4j
 @RestController
 @RequiredArgsConstructor
 public class PjskPluginController {
 
-    private final WebClient webClient;
-    private final ObjectMapper objectMapper;
+    private final HttpProxyService httpProxyService;
     private final LocalData localData;
     private final UserFileHandler userFileHandler;
+    private final NetworkUtil networkUtil;
 
     /**
      * Mysekai 透视 map 请求
@@ -99,8 +100,8 @@ public class PjskPluginController {
             HttpServletRequest request,
             @RequestParam("original") String original
     ) throws IOException {
-        final byte[] reqBody = NetworkUtils.readBody(request);
-        ResponseEntity<Resource> upstream = NetworkUtils.proxyRequest(webClient, original, request, reqBody);
+        final byte[] reqBody = httpProxyService.readBody(request);
+        ResponseEntity<Resource> upstream = httpProxyService.proxyRequest(original, request, reqBody);
         log.debug("[adapter.http] proxied successfully status={}", upstream.getStatusCode().value());
         byte[] tmp = new byte[0];
         if (upstream.getBody() instanceof ByteArrayResource bar) {
@@ -114,16 +115,11 @@ public class PjskPluginController {
         MediaType ct = upstream.getHeaders().getContentType();
         if (ct == null) ct = MediaType.APPLICATION_OCTET_STREAM;
         final MediaType contentType = ct;
-        webClient.post()
-                .uri("http://localhost:8849/upload")
-                .contentType(contentType)
-                .header("X-Original-Url", original)
-                .header("X-Upstream-Status", String.valueOf(upstream.getStatusCode().value()))
-                .bodyValue(upstreamBytes)
-                .retrieve()
-                .bodyToMono(String.class)
-                .doOnError(e -> log.error("[adapter.http] async request failed", e))
-                .subscribe(resp -> log.info("[adapter.http] python resp: {}", resp));
+
+        Map<String, String> headers = new HashMap<>();
+        headers.put("X-Original-Url", original);
+        headers.put("X-Upstream-Status", String.valueOf(upstream.getStatusCode().value()));
+        networkUtil.asyncPost("http://localhost:8849/upload", contentType, upstreamBytes, headers);
 
         return upstream;
     }

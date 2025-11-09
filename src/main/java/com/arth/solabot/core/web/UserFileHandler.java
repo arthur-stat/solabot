@@ -1,7 +1,7 @@
 package com.arth.solabot.core.web;
 
 import com.arth.solabot.adapter.controller.http.dto.ApiResponse;
-import com.arth.solabot.plugin.resource.LocalData;
+import com.arth.solabot.core.infrastructure.LocalData;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;

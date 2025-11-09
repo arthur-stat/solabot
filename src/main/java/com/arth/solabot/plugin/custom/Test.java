@@ -1,7 +1,7 @@
 package com.arth.solabot.plugin.custom;
 
 
-import com.arth.solabot.adapter.fetcher.websocket.ReplyFetcher;
+import com.arth.solabot.adapter.fetcher.ReplyFetcher;
 import com.arth.solabot.adapter.sender.Sender;
 import com.arth.solabot.adapter.sender.action.ForwardChainBuilder;
 import com.arth.solabot.core.bot.authorization.annotation.DirectAuthInterceptor;
@@ -12,6 +12,7 @@ import com.arth.solabot.core.bot.dto.ReplayedMessagePayloadDTO;
 import com.arth.solabot.core.bot.dto.replay.ImageRef;
 import com.arth.solabot.core.bot.invoker.annotation.BotCommand;
 import com.arth.solabot.core.bot.invoker.annotation.BotPlugin;
+import com.arth.solabot.plugin.system.Plugin;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;

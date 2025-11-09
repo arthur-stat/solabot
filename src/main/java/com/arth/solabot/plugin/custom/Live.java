@@ -1,7 +1,7 @@
 package com.arth.solabot.plugin.custom;
 
-import com.arth.solabot.adapter.io.SessionRegistry;
 import com.arth.solabot.adapter.sender.Sender;
+import com.arth.solabot.adapter.session.SessionRegistry;
 import com.arth.solabot.core.bot.authorization.annotation.DirectAuthInterceptor;
 import com.arth.solabot.core.bot.authorization.model.AuthMode;
 import com.arth.solabot.core.bot.authorization.model.AuthScope;
@@ -9,24 +9,23 @@ import com.arth.solabot.core.bot.dto.ParsedPayloadDTO;
 import com.arth.solabot.core.bot.exception.ExternalServiceErrorException;
 import com.arth.solabot.core.bot.invoker.annotation.BotCommand;
 import com.arth.solabot.core.bot.invoker.annotation.BotPlugin;
-import com.arth.solabot.core.general.database.domain.StreamerAlias;
-import com.arth.solabot.core.general.database.domain.StreamerSubscription;
-import com.arth.solabot.core.general.database.mapper.StreamerAliasMapper;
-import com.arth.solabot.core.general.database.mapper.StreamerSubscriptionMapper;
-import com.arth.solabot.core.general.database.service.StreamerAliasService;
-import com.arth.solabot.core.general.database.service.StreamerSubscriptionService;
+import com.arth.solabot.core.infrastructure.database.domain.StreamerAlias;
+import com.arth.solabot.core.infrastructure.database.domain.StreamerSubscription;
+import com.arth.solabot.core.infrastructure.database.mapper.StreamerAliasMapper;
+import com.arth.solabot.core.infrastructure.database.mapper.StreamerSubscriptionMapper;
+import com.arth.solabot.core.infrastructure.database.service.StreamerAliasService;
+import com.arth.solabot.core.infrastructure.database.service.StreamerSubscriptionService;
+import com.arth.solabot.core.infrastructure.network.NetworkUtil;
+import com.arth.solabot.plugin.system.Plugin;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.annotation.PostConstruct;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.TaskScheduler;
-import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.socket.WebSocketSession;
-import reactor.core.publisher.Mono;
 
 import java.time.Duration;
 import java.util.ArrayList;
@@ -43,13 +42,12 @@ import java.util.concurrent.ConcurrentHashMap;
 public class Live extends Plugin {
 
     private final Sender sender;
-    private final ObjectMapper objectMapper;
     private final StreamerAliasMapper streamerAliasMapper;
     private final StreamerAliasService streamerAliasService;
     private final StreamerSubscriptionMapper streamerSubscriptionMapper;
     private final StreamerSubscriptionService subscriptionService;
     private final SessionRegistry sessionRegistry;
-    private final WebClient webClient;
+    private final NetworkUtil networkUtil;
     private final TaskScheduler taskScheduler;
 
     final Map<String, Long> aliasToStreamId = new ConcurrentHashMap<>();
@@ -358,12 +356,10 @@ public class Live extends Plugin {
      */
     private JsonNode requestAPI(long streamId) {
         try {
-            return webClient.get()
-                    .uri("https://api.live.bilibili.com/room/v1/Room/room_init?id=" + streamId)
-                    .retrieve()
-                    .bodyToMono(String.class)
-                    .flatMap(json -> Mono.fromCallable(() -> objectMapper.readTree(json)))
-                    .block(Duration.ofSeconds(5));
+            return networkUtil.getJsonNodeWithBrowserHeaders(
+                    "https://api.live.bilibili.com/room/v1/Room/room_init?id=" + streamId,
+                    Duration.ofSeconds(5)
+            );
         } catch (Exception e) {
             log.error("Failed to request API", e);
             throw new ExternalServiceErrorException("Failed to request API", e.getMessage());

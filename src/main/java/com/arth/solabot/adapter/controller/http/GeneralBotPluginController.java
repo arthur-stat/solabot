@@ -1,7 +1,7 @@
 package com.arth.solabot.adapter.controller.http;
 
 import com.arth.solabot.adapter.controller.ApiPaths;
-import com.arth.solabot.plugin.resource.LocalData;
+import com.arth.solabot.core.infrastructure.LocalData;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.Resource;
 import org.springframework.http.MediaType;

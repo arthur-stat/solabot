@@ -6,6 +6,7 @@ import com.arth.solabot.adapter.sender.action.ForwardChainBuilder;
 import com.arth.solabot.core.bot.dto.ParsedPayloadDTO;
 import com.arth.solabot.core.bot.invoker.annotation.BotCommand;
 import com.arth.solabot.core.bot.invoker.annotation.BotPlugin;
+import com.arth.solabot.plugin.system.Plugin;
 import lombok.RequiredArgsConstructor;
 
 import java.util.List;

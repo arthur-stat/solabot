@@ -1,24 +1,25 @@
 package com.arth.solabot.plugin.custom;
 
 import com.arth.solabot.adapter.controller.ApiPaths;
-import com.arth.solabot.adapter.fetcher.http.ImgService;
 import com.arth.solabot.adapter.sender.Sender;
 import com.arth.solabot.adapter.sender.action.ActionChainBuilder;
 import com.arth.solabot.core.bot.dto.ParsedPayloadDTO;
 import com.arth.solabot.core.bot.invoker.annotation.BotCommand;
 import com.arth.solabot.core.bot.invoker.annotation.BotPlugin;
-import com.arth.solabot.core.general.cache.service.ImageCacheService;
-import com.arth.solabot.core.general.database.mapper.PjskBindingMapper;
+import com.arth.solabot.core.infrastructure.LocalData;
+import com.arth.solabot.core.infrastructure.cache.service.ImageCacheService;
+import com.arth.solabot.core.infrastructure.database.mapper.PjskBindingMapper;
+import com.arth.solabot.core.infrastructure.network.NetworkUtil;
+import com.arth.solabot.core.infrastructure.network.service.impl.ImgNetworkServiceImpl;
 import com.arth.solabot.plugin.custom.pjsk.func.General;
 import com.arth.solabot.plugin.custom.pjsk.func.Mysekai;
 import com.arth.solabot.plugin.custom.pjsk.func.Suite;
-import com.arth.solabot.plugin.resource.LocalData;
+import com.arth.solabot.plugin.system.Plugin;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.web.reactive.function.client.WebClient;
 
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
@@ -92,14 +93,14 @@ public class Pjsk extends Plugin {
 
     private volatile CoreBeanContext ctx;
     private final Sender sender;
-    private final WebClient webClient;
     private final ApiPaths apiPaths;
     private final LocalData localData;
     private final ActionChainBuilder actionChainBuilder;
+    private final NetworkUtil networkUtil;
     private final ImageCacheService imageCacheService;
     private final PjskBindingMapper pjskBindingMapper;
     private final ObjectMapper objectMapper;
-    private final ImgService imgService;
+    private final ImgNetworkServiceImpl imgService;
     private final DateTimeFormatter dateTimeFormatter = DateTimeFormatter
             .ofPattern("yyyy-MM-dd HH:mm:ss")
             .withZone(ZoneId.of("Asia/Shanghai"));
@@ -127,10 +128,10 @@ public class Pjsk extends Plugin {
                 if (ctx == null) {
                     ctx = new CoreBeanContext(
                             sender,
-                            webClient,
                             apiPaths,
                             localData,
                             actionChainBuilder,
+                            networkUtil,
                             imageCacheService,
                             pjskBindingMapper,
                             objectMapper,
@@ -150,14 +151,14 @@ public class Pjsk extends Plugin {
 
     public interface BeanContext {
         Sender sender();
-        WebClient webClient();
         ApiPaths apiPaths();
         LocalData localData();
         ActionChainBuilder actionChainBuilder();
+        NetworkUtil networkUtil();
         ImageCacheService imageCacheService();
         PjskBindingMapper pjskBindingMapper();
         ObjectMapper objectMapper();
-        ImgService imgService();
+        ImgNetworkServiceImpl imgService();
         DateTimeFormatter dateTimeFormatter();
         String suiteApi();
         String mysekaiApi();
@@ -168,14 +169,14 @@ public class Pjsk extends Plugin {
 
     public record CoreBeanContext(
             Sender sender,
-            WebClient webClient,
             ApiPaths apiPaths,
             LocalData localData,
             ActionChainBuilder actionChainBuilder,
+            NetworkUtil networkUtil,
             ImageCacheService imageCacheService,
             PjskBindingMapper pjskBindingMapper,
             ObjectMapper objectMapper,
-            ImgService imgService,
+            ImgNetworkServiceImpl imgService,
             DateTimeFormatter dateTimeFormatter,
             String suiteApi,
             String mysekaiApi,

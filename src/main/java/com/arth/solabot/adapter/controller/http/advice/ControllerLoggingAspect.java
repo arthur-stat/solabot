@@ -1,6 +1,6 @@
 package com.arth.solabot.adapter.controller.http.advice;
 
-import com.arth.solabot.adapter.utils.NetworkUtils;
+import com.arth.solabot.adapter.utils.LogUtils;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
@@ -32,7 +32,7 @@ public class ControllerLoggingAspect {
                     request.getRemoteAddr(),
                     request.getContentType(),
                     contentLength != null ? contentLength : "-");
-            log.debug(NetworkUtils.getRequestInfoStr(objectMapper));
+            log.debug(LogUtils.getRequestInfoStr(objectMapper));
         }
 
         long start = System.currentTimeMillis();

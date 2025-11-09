@@ -5,20 +5,16 @@ import com.arth.solabot.core.bot.dto.ParsedPayloadDTO;
 import com.arth.solabot.core.bot.exception.ExternalServiceErrorException;
 import com.arth.solabot.core.bot.exception.InternalServerErrorException;
 import com.arth.solabot.core.bot.exception.ResourceNotFoundException;
-import com.arth.solabot.core.general.database.domain.PjskBinding;
-import com.arth.solabot.core.general.utils.FileUtils;
+import com.arth.solabot.core.infrastructure.LocalData;
+import com.arth.solabot.core.infrastructure.database.domain.PjskBinding;
+import com.arth.solabot.core.infrastructure.network.NetworkUtil;
+import com.arth.solabot.core.infrastructure.utils.FileUtils;
 import com.arth.solabot.plugin.custom.Pjsk;
 import com.arth.solabot.plugin.custom.pjsk.objects.PjskCard;
 import com.arth.solabot.plugin.custom.pjsk.objects.PjskCardInfo;
 import com.arth.solabot.plugin.custom.pjsk.render.ImageRenderer;
-import com.arth.solabot.plugin.resource.LocalData;
 import com.fasterxml.jackson.databind.JsonNode;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.HttpStatusCode;
-import org.springframework.http.MediaType;
-import org.springframework.web.reactive.function.client.WebClient;
-import reactor.core.publisher.Mono;
 
 import java.awt.image.BufferedImage;
 import java.io.IOException;
@@ -252,26 +248,9 @@ public final class Suite {
      * 会在当前线程阻塞直到获取响应（适合 Spring MVC 环境）。
      */
     private static JsonNode requestUrl(Pjsk.CoreBeanContext ctx, String url) {
-        WebClient webClient = ctx.webClient();
+        NetworkUtil networkUtil = ctx.networkUtil();
         try {
-            String responseBody = webClient.get()
-                    .uri(url)
-                    .header("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36")
-                    .header("Accept", "application/json, text/plain, */*")
-                    .header("Accept-Language", "zh-CN,zh;q=0.9,en;q=0.8")
-                    .accept(MediaType.APPLICATION_JSON)
-                    .retrieve()
-                    .onStatus(status -> status == HttpStatus.NOT_FOUND, response ->
-                            Mono.error(new ExternalServiceErrorException("status:404, account binding not found"))
-                    )
-                    .onStatus(HttpStatusCode::isError, response ->
-                            response.bodyToMono(String.class)
-                                    .flatMap(body -> Mono.error(new IOException(
-                                            "Request failed with status code: " + response.statusCode() + "\n" + body)))
-                    )
-                    .bodyToMono(String.class)
-                    .timeout(Duration.ofSeconds(30))
-                    .block();
+            String responseBody = networkUtil.getStringWithBrowserHeaders(url, Duration.ofSeconds(30));
             if (responseBody == null) throw new IOException("Empty response body for URL: " + url);
             return ctx.objectMapper().readTree(responseBody);
         } catch (Exception e) {

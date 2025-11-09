@@ -4,7 +4,7 @@ import com.arth.solabot.core.bot.dto.ParsedPayloadDTO;
 import com.arth.solabot.core.bot.exception.BusinessException;
 import com.arth.solabot.core.bot.exception.InvalidCommandArgsException;
 import com.arth.solabot.core.bot.exception.ResourceNotFoundException;
-import com.arth.solabot.core.general.database.domain.PjskBinding;
+import com.arth.solabot.core.infrastructure.database.domain.PjskBinding;
 import com.arth.solabot.plugin.custom.Pjsk;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 

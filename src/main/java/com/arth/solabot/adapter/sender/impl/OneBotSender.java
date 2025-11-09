@@ -1,9 +1,9 @@
 package com.arth.solabot.adapter.sender.impl;
 
-import com.arth.solabot.adapter.fetcher.websocket.EchoWaiter;
-import com.arth.solabot.adapter.io.SessionRegistry;
+import com.arth.solabot.adapter.fetcher.EchoWaiter;
 import com.arth.solabot.adapter.sender.Sender;
 import com.arth.solabot.adapter.sender.action.SimpleActionBuilder;
+import com.arth.solabot.adapter.session.SessionRegistry;
 import com.arth.solabot.core.bot.dto.ParsedPayloadDTO;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;

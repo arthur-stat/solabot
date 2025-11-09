@@ -1,11 +1,11 @@
 package com.arth.solabot.plugin.custom.pjsk.func;
 
+import com.arth.solabot.core.infrastructure.LocalData;
 import com.arth.solabot.plugin.custom.Pjsk;
 import com.arth.solabot.plugin.custom.pjsk.objects.PjskCardInfo;
 import com.arth.solabot.plugin.custom.pjsk.objects.enums.CardAttributes;
 import com.arth.solabot.plugin.custom.pjsk.objects.enums.CardCharacters;
 import com.arth.solabot.plugin.custom.pjsk.objects.enums.CardRarities;
-import com.arth.solabot.plugin.resource.LocalData;
 import com.arth.solabot.plugin.resource.MemoryData;
 import com.fasterxml.jackson.databind.JsonNode;
 import lombok.extern.slf4j.Slf4j;
@@ -105,30 +105,4 @@ public final class LocalResourceData {
         }
         log.info("Card data cached!");
     }
-
-//    private static void tryUpdateCards(Pjsk.CoreBeanContext ctx, String region) throws IOException {
-//        Path root = ctx.masterDataPath().resolve(region);
-//        if (!Files.exists(root)) Files.createDirectories(root);
-//
-//        Path versionPath = root.resolve(region).resolve("versions").resolve("current_version.json");
-//        JsonNode versionInfo = ctx.objectMapper().readTree(versionPath.toFile());
-//        String assetVersion = versionInfo.get("assetVersion").asText();
-//
-//        String latestAssetVersion = ctx.webClient().get()
-//                .uri("")
-//                .accept(MediaType.APPLICATION_JSON)
-//                .retrieve()
-//                .bodyToMono(new ParameterizedTypeReference<Map<String, Object>>() {
-//                })
-//                .map(map -> {
-//                    Object command = map.get("assetVersion");
-//                    return command == null ? null : command.toString();
-//                })
-//                .block();
-//
-//        if (!assetVersion.equals(latestAssetVersion)) {
-//
-//        }
-//
-//    }
 }

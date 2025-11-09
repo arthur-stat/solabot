@@ -6,6 +6,8 @@
 
 OpenJDK 17 / 21
 
+Maven 3.9
+
 Spring Boot 3.5
 
 Spring WebFlux 3.5 (WebClient only)
