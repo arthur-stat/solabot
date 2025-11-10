@@ -1,17 +1,17 @@
 package com.arth.solabot.core.infrastructure;
 
 import com.arth.solabot.plugin.custom.Gallery;
-import com.arth.solabot.plugin.custom.pjsk.objects.PjskCard;
+import com.arth.solabot.plugin.custom.pjsk.model.PjskCard;
 import org.springframework.core.io.PathResource;
 import org.springframework.core.io.Resource;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
-@Component
+@Service
 public class LocalData {
 
     /* 服务器本地 Suite 路径 */

@@ -1,6 +1,6 @@
 package com.arth.solabot.plugin.resource;
 
-import com.arth.solabot.plugin.custom.pjsk.objects.PjskCardInfo;
+import com.arth.solabot.plugin.custom.pjsk.model.PjskCardInfo;
 
 import java.util.ArrayList;
 import java.util.Map;

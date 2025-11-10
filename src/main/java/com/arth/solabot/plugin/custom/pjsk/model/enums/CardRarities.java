@@ -1,4 +1,4 @@
-package com.arth.solabot.plugin.custom.pjsk.objects.enums;
+package com.arth.solabot.plugin.custom.pjsk.model.enums;
 
 import lombok.Getter;
 

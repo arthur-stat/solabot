@@ -7,8 +7,9 @@ import com.arth.solabot.core.bot.exception.InternalServerErrorException;
 import com.arth.solabot.core.bot.invoker.annotation.BotCommand;
 import com.arth.solabot.core.bot.invoker.annotation.BotPlugin;
 import com.arth.solabot.core.infrastructure.cache.service.ImageCacheService;
-import com.arth.solabot.core.infrastructure.network.service.ImgNetworkService;
-import com.arth.solabot.core.infrastructure.network.service.ImgNetworkService.GifData;
+import com.arth.solabot.core.infrastructure.network.model.GifData;
+import com.arth.solabot.core.infrastructure.network.service.ImageRequestService;
+import com.arth.solabot.core.infrastructure.utils.service.ImageUtilService;
 import com.arth.solabot.plugin.system.Plugin;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -30,7 +31,7 @@ import java.util.List;
 public class Img extends Plugin {
 
     private final Sender sender;
-    private final ImgNetworkService imgNetworkService;
+    private final ImageRequestService imageNetworkService;
     private final ImageCacheService imageCacheService;
     private final ApiPaths apiPaths;
 
@@ -58,6 +59,7 @@ public class Img extends Plugin {
               - check: 检查图片url
             
             命令使用示例：/img l""";
+    private final ImageUtilService imageUtilService;
 
     @Override
     @BotCommand(command = "index")
@@ -74,7 +76,7 @@ public class Img extends Plugin {
     @BotCommand(command = {"l", "left"})
     public void leftSymmetry(ParsedPayloadDTO payload) throws IOException {
         // 支持静态图片与 GIF（动态）混合输入，输出保持输入顺序
-        List<String> urls = imgNetworkService.extractImgUrls(payload, true);
+        List<String> urls = imageNetworkService.extractImgUrls(payload, true);
         if (urls == null || urls.isEmpty()) return;
 
         int n = urls.size();
@@ -82,12 +84,12 @@ public class Img extends Plugin {
 
         for (int i = 0; i < n; i++) {
             String url = urls.get(i);
-            byte[] data = imgNetworkService.getBytes(url);
+            byte[] data = imageNetworkService.getBytes(url);
             if (data == null || data.length == 0) continue;
-            String type = imgNetworkService.detectImageType(data);
+            String type = imageNetworkService.detectImageType(data);
             if ("gif".equals(type)) {
                 // 处理 GIF：解析、逐帧 midLeft、写回 GIF
-                GifData gif = imgNetworkService.getGifFlattened(new ByteArrayInputStream(data));
+                GifData gif = imageNetworkService.getGifFlattened(new ByteArrayInputStream(data));
                 if (gif == null) continue;
                 gifSymmetryByLeft(List.of(gif));
                 byte[] outBytes = writeGifToBytes(gif.getFrames(), gif.getDelaysCs(), gif.getLoopCount());
@@ -115,7 +117,7 @@ public class Img extends Plugin {
     @BotCommand(command = {"r", "right"})
     public void rightSymmetry(ParsedPayloadDTO payload) throws IOException {
         // 支持静态图片与 GIF（动态）混合输入，输出保持输入顺序
-        List<String> urls = imgNetworkService.extractImgUrls(payload, true);
+        List<String> urls = imageNetworkService.extractImgUrls(payload, true);
         if (urls == null || urls.isEmpty()) return;
 
         int n = urls.size();
@@ -123,11 +125,11 @@ public class Img extends Plugin {
 
         for (int i = 0; i < n; i++) {
             String url = urls.get(i);
-            byte[] data = imgNetworkService.getBytes(url);
+            byte[] data = imageNetworkService.getBytes(url);
             if (data == null || data.length == 0) continue;
-            String type = imgNetworkService.detectImageType(data);
+            String type = imageNetworkService.detectImageType(data);
             if ("gif".equals(type)) {
-                GifData gif = imgNetworkService.getGifFlattened(new ByteArrayInputStream(data));
+                GifData gif = imageNetworkService.getGifFlattened(new ByteArrayInputStream(data));
                 if (gif == null) continue;
                 gifSymmetryByRight(List.of(gif));
                 byte[] outBytes = writeGifToBytes(gif.getFrames(), gif.getDelaysCs(), gif.getLoopCount());
@@ -152,7 +154,7 @@ public class Img extends Plugin {
     @BotCommand(command = {"u", "up"})
     public void up(ParsedPayloadDTO payload) throws IOException {
         // 支持静态图片与 GIF（动态）混合输入，输出保持输入顺序
-        List<String> urls = imgNetworkService.extractImgUrls(payload, true);
+        List<String> urls = imageNetworkService.extractImgUrls(payload, true);
         if (urls == null || urls.isEmpty()) return;
 
         int n = urls.size();
@@ -160,13 +162,13 @@ public class Img extends Plugin {
 
         for (int i = 0; i < n; i++) {
             String url = urls.get(i);
-            byte[] data = imgNetworkService.getBytes(url);
+            byte[] data = imageNetworkService.getBytes(url);
             if (data == null || data.length == 0) continue;
-            String type = imgNetworkService.detectImageType(data);
+            String type = imageNetworkService.detectImageType(data);
 
             if ("gif".equals(type)) {
                 // 解析 GIF 并逐帧处理
-                GifData gif = imgNetworkService.getGifFlattened(new ByteArrayInputStream(data));
+                GifData gif = imageNetworkService.getGifFlattened(new ByteArrayInputStream(data));
                 if (gif == null) continue;
                 gifSymmetryByUp(List.of(gif));
                 byte[] outBytes = writeGifToBytes(gif.getFrames(), gif.getDelaysCs(), gif.getLoopCount());
@@ -192,7 +194,7 @@ public class Img extends Plugin {
     @BotCommand(command = {"d", "down"})
     public void down(ParsedPayloadDTO payload) throws IOException {
         // 支持静态图片与 GIF（动态）混合输入，输出保持输入顺序
-        List<String> urls = imgNetworkService.extractImgUrls(payload, true);
+        List<String> urls = imageNetworkService.extractImgUrls(payload, true);
         if (urls == null || urls.isEmpty()) return;
 
         int n = urls.size();
@@ -200,12 +202,12 @@ public class Img extends Plugin {
 
         for (int i = 0; i < n; i++) {
             String url = urls.get(i);
-            byte[] data = imgNetworkService.getBytes(url);
+            byte[] data = imageNetworkService.getBytes(url);
             if (data == null || data.length == 0) continue;
-            String type = imgNetworkService.detectImageType(data);
+            String type = imageNetworkService.detectImageType(data);
 
             if ("gif".equals(type)) {
-                GifData gif = imgNetworkService.getGifFlattened(new ByteArrayInputStream(data));
+                GifData gif = imageNetworkService.getGifFlattened(new ByteArrayInputStream(data));
                 if (gif == null) continue;
                 gifSymmetryByDown(List.of(gif));
                 byte[] outBytes = writeGifToBytes(gif.getFrames(), gif.getDelaysCs(), gif.getLoopCount());
@@ -278,7 +280,7 @@ public class Img extends Plugin {
         }
 
         // 统一提取输入图片
-        List<String> urls = imgNetworkService.extractImgUrls(payload, true);
+        List<String> urls = imageNetworkService.extractImgUrls(payload, true);
         if (urls == null || urls.isEmpty()) return;
 
         if (angle == 0) {
@@ -291,13 +293,13 @@ public class Img extends Plugin {
 
         for (int i = 0; i < n; i++) {
             String url = urls.get(i);
-            byte[] data = imgNetworkService.getBytes(url);
+            byte[] data = imageNetworkService.getBytes(url);
             if (data == null || data.length == 0) continue;
-            String type = imgNetworkService.detectImageType(data);
+            String type = imageNetworkService.detectImageType(data);
 
             if ("gif".equals(type)) {
                 // ---- 动态 GIF ----
-                GifData gif = imgNetworkService.getGifFlattened(new ByteArrayInputStream(data));
+                GifData gif = imageNetworkService.getGifFlattened(new ByteArrayInputStream(data));
                 if (gif == null) continue;
                 rotateGif(gif, angle);
                 byte[] outBytes = writeGifToBytes(gif.getFrames(), gif.getDelaysCs(), gif.getLoopCount());
@@ -345,12 +347,12 @@ public class Img extends Plugin {
         boolean reverse = rate < 0;
         double r = Math.abs(rate);
 
-        List<String> urls = imgNetworkService.extractImgUrls(payload, true);
+        List<String> urls = imageNetworkService.extractImgUrls(payload, true);
         if (urls == null || urls.isEmpty()) return;
 
         List<String> cacheUrls = new ArrayList<>();
 
-        var gifs = imgNetworkService.getGifFlattened(urls);
+        var gifs = imageNetworkService.getGifFlattened(urls);
 
         for (var gif : gifs) {
             GifData out = retime(gif, r, reverse);
@@ -375,7 +377,7 @@ public class Img extends Plugin {
             }
         }
 
-        List<String> urls = imgNetworkService.extractImgUrls(payload, true);
+        List<String> urls = imageNetworkService.extractImgUrls(payload, true);
         if (urls == null || urls.isEmpty()) return;
 
         // 支持静态图片与 GIF 的混合输入，输出顺序保留输入顺序
@@ -384,12 +386,12 @@ public class Img extends Plugin {
 
         for (int i = 0; i < n; i++) {
             String url = urls.get(i);
-            byte[] data = imgNetworkService.getBytes(url);
+            byte[] data = imageNetworkService.getBytes(url);
             if (data == null || data.length == 0) continue;
-            String type = imgNetworkService.detectImageType(data);
+            String type = imageNetworkService.detectImageType(data);
             if ("gif".equals(type)) {
                 // GIF：逐帧抠图
-                GifData gif = imgNetworkService.getGifFlattened(new ByteArrayInputStream(data));
+                GifData gif = imageNetworkService.getGifFlattened(new ByteArrayInputStream(data));
                 if (gif == null) continue;
                 // 检查帧尺寸，若有帧过小则直接提示并返回（与静态逻辑保持一致）
                 for (BufferedImage frame : gif.getFrames()) {
@@ -494,7 +496,7 @@ public class Img extends Plugin {
 
     @BotCommand(command = "gray")
     public void gray(ParsedPayloadDTO payload) throws IOException {
-        List<String> urls = imgNetworkService.extractImgUrls(payload, true);
+        List<String> urls = imageNetworkService.extractImgUrls(payload, true);
         if (urls == null || urls.isEmpty()) return;
 
         int n = urls.size();
@@ -502,11 +504,11 @@ public class Img extends Plugin {
 
         for (int i = 0; i < n; i++) {
             String url = urls.get(i);
-            byte[] data = imgNetworkService.getBytes(url);
+            byte[] data = imageNetworkService.getBytes(url);
             if (data == null || data.length == 0) continue;
-            String type = imgNetworkService.detectImageType(data);
+            String type = imageNetworkService.detectImageType(data);
             if ("gif".equals(type)) {
-                GifData gif = imgNetworkService.getGifFlattened(new ByteArrayInputStream(data));
+                GifData gif = imageNetworkService.getGifFlattened(new ByteArrayInputStream(data));
                 if (gif == null) continue;
                 gifGray(gif);
                 byte[] outBytes = writeGifToBytes(gif.getFrames(), gif.getDelaysCs(), gif.getLoopCount());
@@ -540,7 +542,7 @@ public class Img extends Plugin {
 
     @BotCommand(command = "invert")
     public void invert(ParsedPayloadDTO payload) throws IOException {
-        List<String> urls = imgNetworkService.extractImgUrls(payload, true);
+        List<String> urls = imageNetworkService.extractImgUrls(payload, true);
         if (urls == null || urls.isEmpty()) return;
 
         int n = urls.size();
@@ -548,13 +550,13 @@ public class Img extends Plugin {
 
         for (int i = 0; i < n; i++) {
             String url = urls.get(i);
-            byte[] data = imgNetworkService.getBytes(url);
+            byte[] data = imageNetworkService.getBytes(url);
             if (data == null || data.length == 0) continue;
 
-            String type = imgNetworkService.detectImageType(data);
+            String type = imageNetworkService.detectImageType(data);
 
             if ("gif".equals(type)) {
-                GifData gif = imgNetworkService.getGifFlattened(new ByteArrayInputStream(data));
+                GifData gif = imageNetworkService.getGifFlattened(new ByteArrayInputStream(data));
                 if (gif == null) continue;
                 gifInvert(gif);
                 byte[] outBytes = writeGifToBytes(gif.getFrames(), gif.getDelaysCs(), gif.getLoopCount());
@@ -576,7 +578,7 @@ public class Img extends Plugin {
 
     @BotCommand(command = "mirror")
     public void mirror(ParsedPayloadDTO payload) throws IOException {
-        List<String> urls = imgNetworkService.extractImgUrls(payload, true);
+        List<String> urls = imageNetworkService.extractImgUrls(payload, true);
         if (urls == null || urls.isEmpty()) return;
 
         int n = urls.size();
@@ -584,11 +586,11 @@ public class Img extends Plugin {
 
         for (int i = 0; i < n; i++) {
             String url = urls.get(i);
-            byte[] data = imgNetworkService.getBytes(url);
+            byte[] data = imageNetworkService.getBytes(url);
             if (data == null || data.length == 0) continue;
-            String type = imgNetworkService.detectImageType(data);
+            String type = imageNetworkService.detectImageType(data);
             if ("gif".equals(type)) {
-                GifData gif = imgNetworkService.getGifFlattened(new ByteArrayInputStream(data));
+                GifData gif = imageNetworkService.getGifFlattened(new ByteArrayInputStream(data));
                 if (gif == null) continue;
                 gifMirror(gif);
                 byte[] outBytes = writeGifToBytes(gif.getFrames(), gif.getDelaysCs(), gif.getLoopCount());
@@ -632,7 +634,7 @@ public class Img extends Plugin {
 
     @BotCommand(command = "check")
     public void check(ParsedPayloadDTO payload) {
-        List<String> urls = imgNetworkService.extractImgUrls(payload, true);
+        List<String> urls = imageNetworkService.extractImgUrls(payload, true);
         if (urls == null || urls.isEmpty()) {
             sender.sendText(payload, "引用消息里没有找到图片");
         } else {
@@ -719,7 +721,7 @@ public class Img extends Plugin {
 
                 IIOMetadata frameMeta = writer.getDefaultImageMetadata(type, params);
                 IIOMetadataNode fmRoot = (IIOMetadataNode) frameMeta.getAsTree(format);
-                IIOMetadataNode gce = imgNetworkService.findNode(fmRoot, "GraphicControlExtension");
+                IIOMetadataNode gce = imageUtilService.findNode(fmRoot, "GraphicControlExtension");
                 if (gce == null) {
                     gce = new IIOMetadataNode("GraphicControlExtension");
                     fmRoot.appendChild(gce);
@@ -1100,9 +1102,9 @@ public class Img extends Plugin {
     }
 
     private void toType(ParsedPayloadDTO payload, String type) throws IOException {
-        List<String> urls = imgNetworkService.extractImgUrls(payload, true);
+        List<String> urls = imageNetworkService.extractImgUrls(payload, true);
         if (urls == null || urls.isEmpty()) return;
-        List<BufferedImage> imgs = imgNetworkService.getBufferedImg(urls);
+        List<BufferedImage> imgs = imageNetworkService.getBufferedImg(urls);
 
         List<String> uuids = new ArrayList<>();
         for (BufferedImage img : imgs) {

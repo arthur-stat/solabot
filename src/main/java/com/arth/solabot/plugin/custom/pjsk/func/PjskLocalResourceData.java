@@ -1,27 +1,33 @@
 package com.arth.solabot.plugin.custom.pjsk.func;
 
 import com.arth.solabot.core.infrastructure.LocalData;
-import com.arth.solabot.plugin.custom.Pjsk;
-import com.arth.solabot.plugin.custom.pjsk.objects.PjskCardInfo;
-import com.arth.solabot.plugin.custom.pjsk.objects.enums.CardAttributes;
-import com.arth.solabot.plugin.custom.pjsk.objects.enums.CardCharacters;
-import com.arth.solabot.plugin.custom.pjsk.objects.enums.CardRarities;
+import com.arth.solabot.plugin.custom.pjsk.model.PjskCardInfo;
+import com.arth.solabot.plugin.custom.pjsk.model.enums.CardAttributes;
+import com.arth.solabot.plugin.custom.pjsk.model.enums.CardCharacters;
+import com.arth.solabot.plugin.custom.pjsk.model.enums.CardRarities;
 import com.arth.solabot.plugin.resource.MemoryData;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.ArrayList;
 
 @Slf4j
-public final class LocalResourceData {
+@Component
+@RequiredArgsConstructor
+public class PjskLocalResourceData {
+
+    private final ObjectMapper objectMapper;
 
     public static JsonNode cards;
 
-    public static String getAssetbundleName(Pjsk.CoreBeanContext ctx, int cardId) throws IOException {
+    public String getAssetbundleName(int cardId) throws IOException {
         Path p = LocalData.PJSK_MASTER_DATA_PATH.resolve("master").resolve("cards.json");
-        cards = ctx.objectMapper().readTree(p.toFile());
+        cards = objectMapper.readTree(p.toFile());
         for (JsonNode card : cards) {
             if (cardId == card.get("id").asInt()) return card.get("assetbundleName").asText();
         }
@@ -66,18 +72,18 @@ public final class LocalResourceData {
     /**
      * 通过cardId获取cards.json中的卡信息
      */
-    public static PjskCardInfo getCachedCardInfo(Pjsk.CoreBeanContext ctx, int cardId) throws IOException {
+    public PjskCardInfo getCachedCardInfo(int cardId) throws IOException {
         if (MemoryData.cachedCardsNew == null) {
-            doCacheCardInfoJob(ctx);
+            doCacheCardInfoJob();
         }
         return MemoryData.cachedCardsNew.get(cardId);
     }
 
 
-    public static void doCacheCardInfoJob(Pjsk.CoreBeanContext ctx) throws IOException {
+    public void doCacheCardInfoJob() throws IOException {
         log.info("Caching card info for first use...");
         Path p = LocalData.PJSK_MASTER_DATA_PATH.resolve("master").resolve("cards.json");
-        JsonNode cards = ctx.objectMapper().readTree(p.toFile());
+        JsonNode cards = objectMapper.readTree(p.toFile());
         MemoryData.cachedCardsNew = new ArrayList<>(cards.size());
         MemoryData.cachedCardsNew.add(null);
         int expectedId = 1;

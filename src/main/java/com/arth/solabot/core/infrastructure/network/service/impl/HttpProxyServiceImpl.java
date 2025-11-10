@@ -38,6 +38,7 @@ public class HttpProxyServiceImpl implements HttpProxyService {
      * @param targetUrl
      * @return
      */
+    @Override
     public ResponseEntity<Resource> proxyRequest(String targetUrl, HttpServletRequest request, byte[] body) {
         log.debug("[adapter.util] prepared to forward request...");
         final HttpMethod method;
@@ -85,7 +86,7 @@ public class HttpProxyServiceImpl implements HttpProxyService {
                     .doOnNext(resp -> log.debug("[adapter.util] forward success, status: {}", status.value()));
         }).block();
     }
-
+    @Override
     public byte[] readBody(HttpServletRequest request) throws IOException {
         try (InputStream inputStream = request.getInputStream()) {
             return inputStream.readAllBytes();

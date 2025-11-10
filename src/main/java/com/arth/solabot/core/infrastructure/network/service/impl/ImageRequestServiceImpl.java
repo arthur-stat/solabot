@@ -7,7 +7,9 @@ import com.arth.solabot.core.bot.dto.ReplayedMessagePayloadDTO;
 import com.arth.solabot.core.bot.dto.replay.ImageRef;
 import com.arth.solabot.core.bot.dto.replay.MfaceRef;
 import com.arth.solabot.core.bot.exception.InvalidCommandArgsException;
-import com.arth.solabot.core.infrastructure.network.service.ImgNetworkService;
+import com.arth.solabot.core.infrastructure.network.model.GifData;
+import com.arth.solabot.core.infrastructure.network.service.ImageRequestService;
+import com.arth.solabot.core.infrastructure.utils.service.ImageUtilService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.io.buffer.DataBuffer;
@@ -42,11 +44,12 @@ import java.util.stream.Stream;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class ImgNetworkServiceImpl implements ImgNetworkService {
+public class ImageRequestServiceImpl implements ImageRequestService {
 
     private final Sender sender;
-    private final ReplyFetcher replyFetcher;
     private final WebClient webClient;
+    private final ReplyFetcher replyFetcher;
+    private final ImageUtilService imageUtilService;
 
     /**
      * 从 url 下载一张静态图片，返回 BufferedImage
@@ -55,6 +58,7 @@ public class ImgNetworkServiceImpl implements ImgNetworkService {
      * @param url
      * @return
      */
+    @Override
     public BufferedImage getBufferedImg(String url) {
         // 流式 getBytes(String) 实现（因为我真的碰到了缓冲区不足的问题）
         byte[] bytes = getBytes(url);
@@ -74,6 +78,7 @@ public class ImgNetworkServiceImpl implements ImgNetworkService {
      * @param inputStream
      * @return
      */
+    @Override
     public BufferedImage getBufferedImg(InputStream inputStream) {
         try {
             return ImageIO.read(inputStream);
@@ -89,6 +94,7 @@ public class ImgNetworkServiceImpl implements ImgNetworkService {
      * @param urls
      * @return
      */
+    @Override
     public List<BufferedImage> getBufferedImg(List<String> urls) {
         List<BufferedImage> imgs = new ArrayList<>();
         for (String url : urls) {
@@ -104,6 +110,7 @@ public class ImgNetworkServiceImpl implements ImgNetworkService {
      * @param inputs
      * @return
      */
+    @Override
     public List<BufferedImage> getBufferedImgFromStreams(List<InputStream> inputs) {
         List<BufferedImage> imgs = new ArrayList<>();
         for (InputStream in : inputs) {
@@ -118,6 +125,7 @@ public class ImgNetworkServiceImpl implements ImgNetworkService {
      * @param url
      * @return
      */
+    @Override
     public byte[] getBytes(String url) {
         try {
             // 流式 bodyToFlux(DataBuffer) 写入 ByteArrayOutputStream
@@ -158,6 +166,7 @@ public class ImgNetworkServiceImpl implements ImgNetworkService {
      * @param inputStream
      * @return
      */
+    @Override
     public byte[] getBytes(InputStream inputStream) {
         if (inputStream == null) return null;
         try (BufferedInputStream bis = new BufferedInputStream(inputStream);
@@ -180,6 +189,7 @@ public class ImgNetworkServiceImpl implements ImgNetworkService {
      * @param urls
      * @return
      */
+    @Override
     public byte[][] getBytes(List<String> urls) {
         List<byte[]> imgs = new ArrayList<>();
         for (String url : urls) {
@@ -195,6 +205,7 @@ public class ImgNetworkServiceImpl implements ImgNetworkService {
      * @param inputs
      * @return
      */
+    @Override
     public byte[][] getBytesFromStreams(List<InputStream> inputs) {
         List<byte[]> imgs = new ArrayList<>();
         for (InputStream in : inputs) {
@@ -210,6 +221,7 @@ public class ImgNetworkServiceImpl implements ImgNetworkService {
      * @return
      * @throws IOException
      */
+    @Override
     public GifData getGifFlattened(String url) throws IOException {
         byte[] inBytes = getBytes(url);
         if (inBytes == null || inBytes.length == 0) throw new IOException("empty file");
@@ -232,10 +244,10 @@ public class ImgNetworkServiceImpl implements ImgNetworkService {
                     String sfmt = streamMeta.getNativeMetadataFormatName();
                     if (sfmt != null) {
                         IIOMetadataNode sroot = (IIOMetadataNode) streamMeta.getAsTree(sfmt);
-                        IIOMetadataNode lsd = findNode(sroot, "LogicalScreenDescriptor");
+                        IIOMetadataNode lsd = imageUtilService.findNode(sroot, "LogicalScreenDescriptor");
                         if (lsd != null) {
-                            canvasW = parseIntSafe(lsd, "logicalScreenWidth", 0);
-                            canvasH = parseIntSafe(lsd, "logicalScreenHeight", 0);
+                            canvasW = imageUtilService.parseIntSafe(lsd, "logicalScreenWidth", 0);
+                            canvasH = imageUtilService.parseIntSafe(lsd, "logicalScreenHeight", 0);
                         }
                     }
                 } catch (Exception ignore) {
@@ -248,13 +260,13 @@ public class ImgNetworkServiceImpl implements ImgNetworkService {
                         IIOMetadata im = reader.getImageMetadata(i);
                         String ifmt = im.getNativeMetadataFormatName();
                         IIOMetadataNode iroot = (IIOMetadataNode) im.getAsTree(ifmt);
-                        IIOMetadataNode imgDesc = findNode(iroot, "ImageDescriptor");
+                        IIOMetadataNode imgDesc = imageUtilService.findNode(iroot, "ImageDescriptor");
                         int fx = 0, fy = 0, fw, fh;
                         if (imgDesc != null) {
-                            fx = parseIntSafe(imgDesc, "imageLeftPosition", 0);
-                            fy = parseIntSafe(imgDesc, "imageTopPosition", 0);
-                            fw = parseIntSafe(imgDesc, "imageWidth", reader.getWidth(i));
-                            fh = parseIntSafe(imgDesc, "imageHeight", reader.getHeight(i));
+                            fx = imageUtilService.parseIntSafe(imgDesc, "imageLeftPosition", 0);
+                            fy = imageUtilService.parseIntSafe(imgDesc, "imageTopPosition", 0);
+                            fw = imageUtilService.parseIntSafe(imgDesc, "imageWidth", reader.getWidth(i));
+                            fh = imageUtilService.parseIntSafe(imgDesc, "imageHeight", reader.getHeight(i));
                         } else {
                             // 有些实现没有 ImageDescriptor，就退回帧图尺寸
                             fw = reader.getWidth(i);
@@ -280,31 +292,31 @@ public class ImgNetworkServiceImpl implements ImgNetworkService {
                 String ifmt = im.getNativeMetadataFormatName();
                 IIOMetadataNode iroot = (IIOMetadataNode) im.getAsTree(ifmt);
                 // 读取帧矩形
-                IIOMetadataNode imgDesc = findNode(iroot, "ImageDescriptor");
-                int fx = (imgDesc != null) ? parseIntSafe(imgDesc, "imageLeftPosition", 0) : 0;
-                int fy = (imgDesc != null) ? parseIntSafe(imgDesc, "imageTopPosition", 0) : 0;
-                int fw = (imgDesc != null) ? parseIntSafe(imgDesc, "imageWidth", raw.getWidth()) : raw.getWidth();
-                int fh = (imgDesc != null) ? parseIntSafe(imgDesc, "imageHeight", raw.getHeight()) : raw.getHeight();
+                IIOMetadataNode imgDesc = imageUtilService.findNode(iroot, "ImageDescriptor");
+                int fx = (imgDesc != null) ? imageUtilService.parseIntSafe(imgDesc, "imageLeftPosition", 0) : 0;
+                int fy = (imgDesc != null) ? imageUtilService.parseIntSafe(imgDesc, "imageTopPosition", 0) : 0;
+                int fw = (imgDesc != null) ? imageUtilService.parseIntSafe(imgDesc, "imageWidth", raw.getWidth()) : raw.getWidth();
+                int fh = (imgDesc != null) ? imageUtilService.parseIntSafe(imgDesc, "imageHeight", raw.getHeight()) : raw.getHeight();
                 // 读取处置
-                IIOMetadataNode gce = findNode(iroot, "GraphicControlExtension");
+                IIOMetadataNode gce = imageUtilService.findNode(iroot, "GraphicControlExtension");
                 String disposal = (gce != null) ? gce.getAttribute("disposalMethod") : "none";
                 if (disposal == null || disposal.isEmpty()) disposal = "none";
                 // 在绘制当前帧之前保存快照（仅当本帧的处置是 restoreToPrevious 时需要）
                 BufferedImage prevSnapshot = null;
                 if ("restoreToPrevious".equals(disposal)) {
-                    prevSnapshot = deepCopy(work);
+                    prevSnapshot = imageUtilService.deepCopy(work);
                 }
                 // 把当前帧绘制到工作画布 (fx, fy)
                 wg.drawImage(raw, fx, fy, null);
                 // 生成独立全画布帧快照
-                g.frames.add(deepCopy(work));
+                g.frames.add(imageUtilService.deepCopy(work));
                 // 记录延时和循环
-                int delayCs = readDelayCs(im);
+                int delayCs = imageUtilService.readDelayCs(im);
                 g.delaysCs.add(delayCs > 0 ? delayCs : 10);
-                if (i == 0) g.loopCount = readLoopCount(im);
+                if (i == 0) g.loopCount = imageUtilService.readLoopCount(im);
                 // 根据处置法处理工作画布
                 if ("restoreToBackgroundColor".equals(disposal)) {
-                    clearRectTransparent(work, fx, fy, fw, fh);
+                    imageUtilService.clearRectTransparent(work, fx, fy, fw, fh);
                 } else if ("restoreToPrevious".equals(disposal) && prevSnapshot != null) {
                     Graphics2D g2 = work.createGraphics();
                     g2.setComposite(AlphaComposite.Src);
@@ -328,6 +340,7 @@ public class ImgNetworkServiceImpl implements ImgNetworkService {
      * @return
      * @throws IOException
      */
+    @Override
     public GifData getGifFlattened(InputStream inputStream) throws IOException {
         byte[] inBytes = getBytes(inputStream);
         if (inBytes == null || inBytes.length == 0) throw new IOException("empty file");
@@ -350,10 +363,10 @@ public class ImgNetworkServiceImpl implements ImgNetworkService {
                     String sfmt = streamMeta.getNativeMetadataFormatName();
                     if (sfmt != null) {
                         IIOMetadataNode sroot = (IIOMetadataNode) streamMeta.getAsTree(sfmt);
-                        IIOMetadataNode lsd = findNode(sroot, "LogicalScreenDescriptor");
+                        IIOMetadataNode lsd = imageUtilService.findNode(sroot, "LogicalScreenDescriptor");
                         if (lsd != null) {
-                            canvasW = parseIntSafe(lsd, "logicalScreenWidth", 0);
-                            canvasH = parseIntSafe(lsd, "logicalScreenHeight", 0);
+                            canvasW = imageUtilService.parseIntSafe(lsd, "logicalScreenWidth", 0);
+                            canvasH = imageUtilService.parseIntSafe(lsd, "logicalScreenHeight", 0);
                         }
                     }
                 } catch (Exception ignore) {
@@ -366,13 +379,13 @@ public class ImgNetworkServiceImpl implements ImgNetworkService {
                         IIOMetadata im = reader.getImageMetadata(i);
                         String ifmt = im.getNativeMetadataFormatName();
                         IIOMetadataNode iroot = (IIOMetadataNode) im.getAsTree(ifmt);
-                        IIOMetadataNode imgDesc = findNode(iroot, "ImageDescriptor");
+                        IIOMetadataNode imgDesc = imageUtilService.findNode(iroot, "ImageDescriptor");
                         int fx = 0, fy = 0, fw, fh;
                         if (imgDesc != null) {
-                            fx = parseIntSafe(imgDesc, "imageLeftPosition", 0);
-                            fy = parseIntSafe(imgDesc, "imageTopPosition", 0);
-                            fw = parseIntSafe(imgDesc, "imageWidth", reader.getWidth(i));
-                            fh = parseIntSafe(imgDesc, "imageHeight", reader.getHeight(i));
+                            fx = imageUtilService.parseIntSafe(imgDesc, "imageLeftPosition", 0);
+                            fy = imageUtilService.parseIntSafe(imgDesc, "imageTopPosition", 0);
+                            fw = imageUtilService.parseIntSafe(imgDesc, "imageWidth", reader.getWidth(i));
+                            fh = imageUtilService.parseIntSafe(imgDesc, "imageHeight", reader.getHeight(i));
                         } else {
                             // 有些实现没有 ImageDescriptor，就退回帧图尺寸
                             fw = reader.getWidth(i);
@@ -398,31 +411,31 @@ public class ImgNetworkServiceImpl implements ImgNetworkService {
                 String ifmt = im.getNativeMetadataFormatName();
                 IIOMetadataNode iroot = (IIOMetadataNode) im.getAsTree(ifmt);
                 // 读取帧矩形
-                IIOMetadataNode imgDesc = findNode(iroot, "ImageDescriptor");
-                int fx = (imgDesc != null) ? parseIntSafe(imgDesc, "imageLeftPosition", 0) : 0;
-                int fy = (imgDesc != null) ? parseIntSafe(imgDesc, "imageTopPosition", 0) : 0;
-                int fw = (imgDesc != null) ? parseIntSafe(imgDesc, "imageWidth", raw.getWidth()) : raw.getWidth();
-                int fh = (imgDesc != null) ? parseIntSafe(imgDesc, "imageHeight", raw.getHeight()) : raw.getHeight();
+                IIOMetadataNode imgDesc = imageUtilService.findNode(iroot, "ImageDescriptor");
+                int fx = (imgDesc != null) ? imageUtilService.parseIntSafe(imgDesc, "imageLeftPosition", 0) : 0;
+                int fy = (imgDesc != null) ? imageUtilService.parseIntSafe(imgDesc, "imageTopPosition", 0) : 0;
+                int fw = (imgDesc != null) ? imageUtilService.parseIntSafe(imgDesc, "imageWidth", raw.getWidth()) : raw.getWidth();
+                int fh = (imgDesc != null) ? imageUtilService.parseIntSafe(imgDesc, "imageHeight", raw.getHeight()) : raw.getHeight();
                 // 读取处置
-                IIOMetadataNode gce = findNode(iroot, "GraphicControlExtension");
+                IIOMetadataNode gce = imageUtilService.findNode(iroot, "GraphicControlExtension");
                 String disposal = (gce != null) ? gce.getAttribute("disposalMethod") : "none";
                 if (disposal == null || disposal.isEmpty()) disposal = "none";
                 // 在绘制当前帧之前保存快照（仅当本帧的处置是 restoreToPrevious 时需要）
                 BufferedImage prevSnapshot = null;
                 if ("restoreToPrevious".equals(disposal)) {
-                    prevSnapshot = deepCopy(work);
+                    prevSnapshot = imageUtilService.deepCopy(work);
                 }
                 // 把当前帧绘制到工作画布 (fx, fy)
                 wg.drawImage(raw, fx, fy, null);
                 // 生成独立全画布帧快照
-                g.frames.add(deepCopy(work));
+                g.frames.add(imageUtilService.deepCopy(work));
                 // 记录延时和循环
-                int delayCs = readDelayCs(im);
+                int delayCs = imageUtilService.readDelayCs(im);
                 g.delaysCs.add(delayCs > 0 ? delayCs : 10);
-                if (i == 0) g.loopCount = readLoopCount(im);
+                if (i == 0) g.loopCount = imageUtilService.readLoopCount(im);
                 // 根据处置法处理工作画布
                 if ("restoreToBackgroundColor".equals(disposal)) {
-                    clearRectTransparent(work, fx, fy, fw, fh);
+                    imageUtilService.clearRectTransparent(work, fx, fy, fw, fh);
                 } else if ("restoreToPrevious".equals(disposal) && prevSnapshot != null) {
                     Graphics2D g2 = work.createGraphics();
                     g2.setComposite(AlphaComposite.Src);
@@ -444,6 +457,7 @@ public class ImgNetworkServiceImpl implements ImgNetworkService {
      * @return
      * @throws IOException
      */
+    @Override
     public List<GifData> getGifFlattened(List<String> urls) throws IOException {
         List<GifData> gifs = new ArrayList<>();
         for (String url : urls) {
@@ -459,6 +473,7 @@ public class ImgNetworkServiceImpl implements ImgNetworkService {
      * @return
      * @throws IOException
      */
+    @Override
     public List<GifData> getGifFlattenedFromStreams(List<InputStream> inputs) throws IOException {
         List<GifData> gifs = new ArrayList<>();
         for (InputStream in : inputs) {
@@ -474,6 +489,7 @@ public class ImgNetworkServiceImpl implements ImgNetworkService {
      * @param printPrompt
      * @return
      */
+    @Override
     public List<String> extractImgUrls(ParsedPayloadDTO payload, boolean printPrompt) {
         String replyMsgId = payload.getReplyToMessageId();
         if (replyMsgId == null || replyMsgId.isBlank()) {
@@ -520,89 +536,16 @@ public class ImgNetworkServiceImpl implements ImgNetworkService {
         return urls;
     }
 
+    @Override
     public List<String> extractImgUrls(ParsedPayloadDTO payload) {
         return extractImgUrls(payload, false);
     }
 
+
     // ==================  helper  ==================
     // ==================  helper  ==================
     // ==================  helper  ==================
 
-    public int parseIntSafe(IIOMetadataNode n, String attr, int defVal) {
-        if (n == null) return defVal;
-        try {
-            String v = n.getAttribute(attr);
-            if (v == null || v.isEmpty()) return defVal;
-            return Integer.parseInt(v);
-        } catch (Exception e) {
-            return defVal;
-        }
-    }
-
-    public BufferedImage deepCopy(BufferedImage src) {
-        BufferedImage dst = new BufferedImage(src.getWidth(), src.getHeight(), BufferedImage.TYPE_INT_ARGB);
-        Graphics2D g2 = dst.createGraphics();
-        g2.setComposite(AlphaComposite.Src);
-        g2.drawImage(src, 0, 0, null);
-        g2.dispose();
-        return dst;
-    }
-
-    public IIOMetadataNode findNode(IIOMetadataNode root, String name) {
-        if (root == null) return null;
-        if (name.equals(root.getNodeName())) return root;
-        for (int i = 0; i < root.getLength(); i++) {
-            IIOMetadataNode res = findNode((IIOMetadataNode) root.item(i), name);
-            if (res != null) return res;
-        }
-        return null;
-    }
-
-    public int readLoopCount(IIOMetadata metadata) {
-        try {
-            String format = metadata.getNativeMetadataFormatName();
-            IIOMetadataNode root = (IIOMetadataNode) metadata.getAsTree(format);
-            IIOMetadataNode aes = findNode(root, "ApplicationExtensions");
-            if (aes != null) {
-                for (int i = 0; i < aes.getLength(); i++) {
-                    IIOMetadataNode ae = (IIOMetadataNode) aes.item(i);
-                    if ("ApplicationExtension".equals(ae.getNodeName())) {
-                        String appID = ae.getAttribute("applicationID");
-                        String auth = ae.getAttribute("authenticationCode");
-                        if ("NETSCAPE".equals(appID) && "2.0".equals(auth)) {
-                            byte[] bytes = (byte[]) ae.getUserObject();
-                            if (bytes != null && bytes.length >= 3) {
-                                return ((bytes[2] & 0xFF) << 8) | (bytes[1] & 0xFF);
-                            }
-                        }
-                    }
-                }
-            }
-        } catch (Exception ignore) {
-        }
-        return 0;
-    }
-
-    public int readDelayCs(IIOMetadata metadata) {
-        try {
-            String format = metadata.getNativeMetadataFormatName();
-            IIOMetadataNode root = (IIOMetadataNode) metadata.getAsTree(format);
-            IIOMetadataNode gce = findNode(root, "GraphicControlExtension");
-            if (gce != null) {
-                String delay = gce.getAttribute("delayTime");
-                return Integer.parseInt(delay);
-            }
-        } catch (Exception ignore) {
-        }
-        return 10;
-    }
-
-    public void clearRectTransparent(BufferedImage img, int x, int y, int w, int h) {
-        Graphics2D g2 = img.createGraphics();
-        g2.setComposite(AlphaComposite.Clear);
-        g2.fillRect(x, y, w, h);
-        g2.dispose();
-    }
 
     /**
      * 打开一个 url 并返回可读的 InputStream，stream.close() 会在关闭时断开底层连接
@@ -611,6 +554,7 @@ public class ImgNetworkServiceImpl implements ImgNetworkService {
      * @return InputStream
      * @throws IOException
      */
+    @Override
     public InputStream openUrlInputStream(String url) throws IOException {
         try {
             // 使用流式下载到临时文件并返回 FileInputStream 以避免内存聚合
@@ -631,6 +575,7 @@ public class ImgNetworkServiceImpl implements ImgNetworkService {
      * @return
      * @throws IOException
      */
+    @Override
     public List<InputStream> openUrlInputStreams(List<String> urls) throws IOException {
         List<InputStream> list = new ArrayList<>();
         for (String u : urls) list.add(openUrlInputStream(u));
@@ -644,6 +589,7 @@ public class ImgNetworkServiceImpl implements ImgNetworkService {
      * @param data 完整的文件二进制（建议至少前 12 字节）
      * @return 文件类型字符串，如 "gif"、"png"、"jpeg"、"bmp"、"webp"、"unknown"
      */
+    @Override
     public String detectImageType(byte[] data) {
         if (data == null || data.length < 4) return "unknown";
         // GIF
@@ -677,6 +623,7 @@ public class ImgNetworkServiceImpl implements ImgNetworkService {
      * @return
      * @throws IOException
      */
+    @Override
     public String detectImageType(InputStream in) throws IOException {
         byte[] data = getBytes(in);
         return detectImageType(data);
@@ -690,6 +637,7 @@ public class ImgNetworkServiceImpl implements ImgNetworkService {
      * @param targetPath
      * @return
      */
+    @Override
     public Path downloadToFile(String url, Path targetPath) {
         Flux<DataBuffer> flux = webClient.get()
                 .uri(url)

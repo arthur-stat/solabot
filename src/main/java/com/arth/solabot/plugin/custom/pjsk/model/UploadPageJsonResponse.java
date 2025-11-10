@@ -1,4 +1,4 @@
-package com.arth.solabot.plugin.custom.pjsk.objects;
+package com.arth.solabot.plugin.custom.pjsk.model;
 
 public class UploadPageJsonResponse {
     public static String SUCCESS_MSG = "Upload and process completed!";

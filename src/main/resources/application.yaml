@@ -1,9 +1,15 @@
 server:
   address: 0.0.0.0
   port: 8848
+#  ssl:
+#    enabled: true
+#    key-store: "classpath:keystore.p12"
+#    key-store-password: "password"
+#    key-store-type: PKCS12
+#    key-alias: "alias"
 
 app:
-  domain-name: "http://192.168.1.10:8848"  # 本地测试时，可以改为 "http://localhost:8848"
+  domain-name: "https://yly.dylancloud.uk"  # 本地测试时，可以改为 "http://localhost:8848"
   # "https://yly.dylancloud.uk"
   # "http://localhost:8848"
   # "http://192.168.1.10:8848"

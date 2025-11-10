@@ -35,6 +35,7 @@ public class ImageCacheServiceImpl implements ImageCacheService {
      * @return
      * @throws IOException
      */
+    @Override
     public String cacheImage(BufferedImage img, String imgType) throws IOException {
         String uuid = UUID.randomUUID().toString();
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -51,6 +52,7 @@ public class ImageCacheServiceImpl implements ImageCacheService {
      * @return
      * @throws IOException
      */
+    @Override
     public String cacheImage(BufferedImage img) throws IOException {
         return cacheImage(img, "png");
     }
@@ -63,6 +65,7 @@ public class ImageCacheServiceImpl implements ImageCacheService {
      * @param imgType
      * @return
      */
+    @Override
     public String cacheImage(byte[] bytes, String imgType) {
         if (bytes.length > maxSize) {
             throw new IllegalArgumentException("Image size exceeds limit: " + bytes.length + " > " + maxSize);
@@ -78,6 +81,7 @@ public class ImageCacheServiceImpl implements ImageCacheService {
      * @param bytes
      * @return
      */
+    @Override
     public String cacheImage(byte[] bytes) {
         return cacheImage(bytes, "gif");
     }
@@ -90,6 +94,7 @@ public class ImageCacheServiceImpl implements ImageCacheService {
      * @return
      * @throws IOException
      */
+    @Override
     public List<String> cacheImage(List<BufferedImage> imgs, List<String> imgTypes) throws IOException {
         if (imgs.size() != imgTypes.size()) throw new IllegalArgumentException("size of imgs and types not matched");
         List<String> uuids = new ArrayList<>(imgs.size());
@@ -106,6 +111,7 @@ public class ImageCacheServiceImpl implements ImageCacheService {
      * @return
      * @throws IOException
      */
+    @Override
     public List<String> cacheImage(List<BufferedImage> imgs) throws IOException {
         List<String> imgTypes = Collections.nCopies(imgs.size(), "png");
         return cacheImage(imgs, imgTypes);
@@ -118,6 +124,7 @@ public class ImageCacheServiceImpl implements ImageCacheService {
      * @param imgTypes
      * @return
      */
+    @Override
     public List<String> cacheImage(byte[][] bytesList, List<String> imgTypes) {
         if (bytesList.length != imgTypes.size())
             throw new IllegalArgumentException("size of bytes list and types not matched");
@@ -134,6 +141,7 @@ public class ImageCacheServiceImpl implements ImageCacheService {
      * @param bytesList
      * @return
      */
+    @Override
     public List<String> cacheImage(byte[][] bytesList) {
         List<String> imgTypes = Collections.nCopies(bytesList.length, "gif");
         return cacheImage(bytesList, imgTypes);

@@ -1,22 +1,18 @@
 package com.arth.solabot.core.infrastructure.network.service;
 
 import com.arth.solabot.core.bot.dto.ParsedPayloadDTO;
-import lombok.Getter;
-import lombok.Setter;
+import com.arth.solabot.core.infrastructure.network.model.GifData;
 
-import javax.imageio.metadata.IIOMetadata;
-import javax.imageio.metadata.IIOMetadataNode;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Path;
-import java.util.ArrayList;
 import java.util.List;
 
 /**
- * 插件 Img 的网络服务接口
+ * 通用图片请求服务接口
  */
-public interface ImgNetworkService {
+public interface ImageRequestService {
 
     /**
      * 从 url 下载一张静态图片，返回 BufferedImage
@@ -145,60 +141,6 @@ public interface ImgNetworkService {
     List<String> extractImgUrls(ParsedPayloadDTO payload);
 
     /**
-     * 安全解析IIOMetadataNode中的整数值
-     *
-     * @param n      元数据节点
-     * @param attr   属性名
-     * @param defVal 默认值
-     * @return 解析后的整数值
-     */
-    int parseIntSafe(IIOMetadataNode n, String attr, int defVal);
-
-    /**
-     * 深拷贝BufferedImage
-     *
-     * @param src 源图像
-     * @return 深拷贝后的图像
-     */
-    BufferedImage deepCopy(BufferedImage src);
-
-    /**
-     * 在IIOMetadataNode树中递归查找指定名称的节点
-     *
-     * @param root 根节点
-     * @param name 要查找的节点名称
-     * @return 找到的节点，未找到返回null
-     */
-    IIOMetadataNode findNode(IIOMetadataNode root, String name);
-
-    /**
-     * 从GIF元数据中读取循环次数
-     *
-     * @param metadata 元数据
-     * @return 循环次数
-     */
-    int readLoopCount(IIOMetadata metadata);
-
-    /**
-     * 从GIF元数据中读取帧延迟时间（以厘秒为单位）
-     *
-     * @param metadata 元数据
-     * @return 延迟时间（厘秒）
-     */
-    int readDelayCs(IIOMetadata metadata);
-
-    /**
-     * 将图像指定区域清除为透明
-     *
-     * @param img 图像
-     * @param x   区域x坐标
-     * @param y   区域y坐标
-     * @param w   区域宽度
-     * @param h   区域高度
-     */
-    void clearRectTransparent(BufferedImage img, int x, int y, int w, int h);
-
-    /**
      * 打开一个 url 并返回可读的 InputStream，stream.close() 会在关闭时断开底层连接
      *
      * @param url 资源URL
@@ -245,19 +187,4 @@ public interface ImgNetworkService {
      * @return 下载的文件路径
      */
     Path downloadToFile(String url, Path targetPath);
-
-    /**
-     * GIF 数据结构
-     * 包含帧列表、延时信息和循环次数
-     */
-    @Setter
-    @Getter
-    class GifData {
-
-        public List<BufferedImage> frames = new ArrayList<>();
-
-        public List<Integer> delaysCs = new ArrayList<>();
-
-        public int loopCount = 0;
-    }
 }

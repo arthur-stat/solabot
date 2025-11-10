@@ -1,9 +1,9 @@
-package com.arth.solabot.plugin.custom.pjsk.objects;
+package com.arth.solabot.plugin.custom.pjsk.model;
 
 
-import com.arth.solabot.plugin.custom.pjsk.objects.enums.CardAttributes;
-import com.arth.solabot.plugin.custom.pjsk.objects.enums.CardCharacters;
-import com.arth.solabot.plugin.custom.pjsk.objects.enums.CardRarities;
+import com.arth.solabot.plugin.custom.pjsk.model.enums.CardAttributes;
+import com.arth.solabot.plugin.custom.pjsk.model.enums.CardCharacters;
+import com.arth.solabot.plugin.custom.pjsk.model.enums.CardRarities;
 
 /**
  * @param assetsBundle  AssetsBundle

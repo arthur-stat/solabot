@@ -1,14 +1,15 @@
 package com.arth.solabot.plugin.custom.pjsk.render;
 
 import com.arth.solabot.core.infrastructure.LocalData;
-import com.arth.solabot.plugin.custom.Pjsk;
+import com.arth.solabot.core.infrastructure.utils.service.ImageUtilService;
 import com.arth.solabot.plugin.custom.pjsk.func.AssetsBundleResources;
-import com.arth.solabot.plugin.custom.pjsk.objects.PjskCard;
-import com.arth.solabot.plugin.custom.pjsk.objects.enums.CardAttributes;
-import com.arth.solabot.plugin.custom.pjsk.objects.enums.CardRarities;
+import com.arth.solabot.plugin.custom.pjsk.model.PjskCard;
+import com.arth.solabot.plugin.custom.pjsk.model.enums.CardAttributes;
+import com.arth.solabot.plugin.custom.pjsk.model.enums.CardRarities;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.util.Pair;
+import org.springframework.stereotype.Component;
 
 import javax.imageio.IIOImage;
 import javax.imageio.ImageIO;
@@ -28,15 +29,21 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
 @Slf4j
+@Component
 @RequiredArgsConstructor
-public class ImageRenderer {
+public class PjskImageRenderer {
+
+    private final LocalData localData;
+    private final AssetsBundleResources assetsBundleResources;
+    private final ImageUtilService imageUtilService;
+
     public enum ExtendDirection {
         DOWN,
         RIGHT
     }
 
     //懒得学，ai不香吗
-    private static BufferedImage mergeImages(BufferedImage background,
+    private BufferedImage mergeImages(BufferedImage background,
                                              BufferedImage foreground,
                                              int x, int y) {
         // 获取 Graphics2D 对象
@@ -63,7 +70,7 @@ public class ImageRenderer {
      * @param direction
      * @return
      */
-    private static BufferedImage extendImage(BufferedImage image, int times, ExtendDirection direction) {
+    private BufferedImage extendImage(BufferedImage image, int times, ExtendDirection direction) {
         int imageWidth = image.getWidth();
         int imageHeight = image.getHeight();
         int targetWidth;
@@ -134,7 +141,7 @@ public class ImageRenderer {
      * @param compressionQuality 压缩质量 (0.0-1.0)
      * @return 压缩后的 BufferedImage
      */
-    public static BufferedImage compressPNG(BufferedImage image, float compressionQuality) {
+    public BufferedImage compressPNG(BufferedImage image, float compressionQuality) {
         try {
             Iterator<ImageWriter> writers = ImageIO.getImageWritersByFormatName("png");
             if (!writers.hasNext()) {
@@ -176,7 +183,7 @@ public class ImageRenderer {
      * @return
      */
     //卡面缩略图原大小为128x128，需要缩放至140x140
-    private static BufferedImage resize(BufferedImage originalImage, int width, int height) {
+    private BufferedImage resize(BufferedImage originalImage, int width, int height) {
         BufferedImage resizedImage = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
         Graphics2D g2d = resizedImage.createGraphics();
         g2d.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
@@ -189,7 +196,8 @@ public class ImageRenderer {
 
 
     //卡片渲染，大小固定为156*156
-    public static class Card {
+    public class PjskCardImg {
+
         private CardAttributes attributes;
         private CardRarities rarities;
         private BufferedImage thumbnails;
@@ -197,21 +205,19 @@ public class ImageRenderer {
         private BufferedImage rarityImage;
         private BufferedImage attributeImage;
         private BufferedImage output;
-        private Pjsk.BeanContext ctx;
         private boolean shouldDrawRarity = true;
         private boolean shouldDrawBoarder = true;
         private boolean shouldDrawAttribute = true;
 
         //https://assets.unipjsk.com/startapp/thumbnail/chara/{assetbundle_name}_{status}.png
-        public Card(Pjsk.BeanContext ctx, PjskCard pjskCard) throws IOException {
-            this.ctx = ctx;
+        public PjskCardImg(PjskCard pjskCard) throws IOException {
             attributes = pjskCard.getAttributes();
             rarities = pjskCard.getRarities();
-            thumbnails = AssetsBundleResources.getOrCacheThumbnailByCard(ctx, pjskCard);
+            thumbnails = assetsBundleResources.getOrCacheThumbnailByCard(pjskCard);
 
-            boarder = ImageIO.read(ctx.localData().getCardBorderImgPath(pjskCard).toFile());
+            boarder = ImageIO.read(localData.getCardBorderImgPath(pjskCard).toFile());
             rarityImage = ImageIO.read((pjskCard.getRarities().equals(CardRarities.RARITY_BIRTHDAY) ? LocalData.RENDER_RARITY_BIRTH.toFile() : LocalData.RENDER_RARITY_STAR.toFile()));
-            attributeImage = ImageIO.read(ctx.localData().getCardAttrImgPath(pjskCard).toFile());
+            attributeImage = ImageIO.read(localData.getCardAttrImgPath(pjskCard).toFile());
         }
 
         public void noDrawRarity() {
@@ -232,7 +238,7 @@ public class ImageRenderer {
             thumbnails = resize(thumbnails, 140, 140);
             if (shouldDrawBoarder) {
                 if (rarities.equals(CardRarities.RARITY_BIRTHDAY)) {
-                    BufferedImage bufferedBoarder = ctx.imgService().deepCopy(boarder);
+                    BufferedImage bufferedBoarder = imageUtilService.deepCopy(boarder);
                     output = mergeImages(boarder, thumbnails, 8, 8);//基本框+缩略图
                     mergeImages(output, bufferedBoarder, 0, 0);//再覆盖一次框，生日卡的框比较特殊
                 } else {
@@ -257,7 +263,7 @@ public class ImageRenderer {
 
 
     //输出渲染box,单个背景最多可放60张卡(5x10)
-    public static class Box {
+    public class Box {
         public enum BoxDrawMethod {
             RARITIES_IN_DESCEND,
             CHARA_ID_IN_ASCEND;
