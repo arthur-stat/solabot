@@ -21,7 +21,7 @@ import java.util.*;
 @RequiredArgsConstructor
 public class CommandInvoker {
 
-    private final PluginRegistry pluginRegistry;
+    private final PluginRegistryCenter pluginRegistry;
     private final DefaultStrategy defaultStrategy = new DefaultStrategy();
 
     /**
@@ -54,7 +54,7 @@ public class CommandInvoker {
 
             // 2) 常规失败 → 尝试 glue 模块“最长前缀匹配”
             if (holder == null) {
-                PluginRegistry.GlueMatch gm = pluginRegistry.matchGlueByLongestPrefix(parsed.rawNoSlash());
+                PluginRegistryCenter.GlueMatch gm = pluginRegistry.matchGlueByLongestPrefix(parsed.rawNoSlash());
                 if (gm != null) {
                     holder = gm.holder;
                     String rest = parsed.rawNoSlash().substring(gm.matchedAlias.length()).trim();

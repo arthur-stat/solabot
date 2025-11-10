@@ -57,10 +57,10 @@ public class Help extends Plugin {
             building.addCustomNode(payload.getSelfId(), "bot", n -> n.text("「当前群聊非翼遥啤酒烧烤大排档，烤森功能不可用，pjsk 模块剩余内容略」"));
         }
 
-        building.addCustomNode(payload.getSelfId(), "bot", n -> n.text(pluginRegistry.getPluginHelpText(Img.class)))
-                .addCustomNode(payload.getSelfId(), "bot", n -> n.text(pluginRegistry.getPluginHelpText(Gallery.class)))
-                .addCustomNode(payload.getSelfId(), "bot", n -> n.text(pluginRegistry.getPluginHelpText(Live.class)))
-                .addCustomNode(payload.getSelfId(), "bot", n -> n.text(pluginRegistry.getPluginHelpText(Test.class)));
+        building.addCustomNode(payload.getSelfId(), "bot", n -> n.text(pluginRegistryCenter.getPluginHelpText(Img.class)))
+                .addCustomNode(payload.getSelfId(), "bot", n -> n.text(pluginRegistryCenter.getPluginHelpText(Gallery.class)))
+                .addCustomNode(payload.getSelfId(), "bot", n -> n.text(pluginRegistryCenter.getPluginHelpText(Live.class)))
+                .addCustomNode(payload.getSelfId(), "bot", n -> n.text(pluginRegistryCenter.getPluginHelpText(Test.class)));
 
         String json = (payload.getGroupId() != null) ? building.toGroupJson(payload.getGroupId()) : building.toPrivateJson(payload.getUserId());
 
@@ -71,7 +71,7 @@ public class Help extends Plugin {
     public void index(ParsedPayloadDTO payload, List<String> args) {
         for (String arg : args) {
             try {
-                pluginRegistry.callPluginHelp(payload, arg);
+                pluginRegistryCenter.callPluginHelp(payload, arg);
             } catch (Exception ignore) {
 
             }

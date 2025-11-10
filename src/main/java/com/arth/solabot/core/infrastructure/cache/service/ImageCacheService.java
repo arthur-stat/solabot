@@ -1,142 +1,85 @@
 package com.arth.solabot.core.infrastructure.cache.service;
 
-import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.stereotype.Service;
-
-import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.time.Duration;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
-import java.util.UUID;
 
-@Service
-@RequiredArgsConstructor
-public class ImageCacheService {
-
-    private final RedisTemplate<String, byte[]> redisTemplate;
-
-    @Value("${app.parameter.cache.tmp-img.ttl}")
-    private int ttl;
-    @Value("${app.parameter.cache.tmp-img.max-size}")
-    private int maxSize;
+/**
+ * 通用图片缓存服务接口：
+ * 提供将图片数据缓存到Redis中的功能，支持单张和多张图片缓存
+ */
+public interface ImageCacheService {
 
     /**
      * 缓存静态图片方法，要求输入 BufferedImage，返回 Redis 缓存的 UUID
      *
-     * @param img
-     * @param imgType
-     * @return
-     * @throws IOException
+     * @param img     要缓存的图片
+     * @param imgType 图片类型（如：png, jpg, gif等）
+     * @return 缓存的UUID标识
+     * @throws IOException 图片处理异常
      */
-    public String cacheImage(BufferedImage img, String imgType) throws IOException {
-        String uuid = UUID.randomUUID().toString();
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        ImageIO.write(img, imgType, baos);
-        byte[] bytes = baos.toByteArray();
-        redisTemplate.opsForValue().set("temp:image:" + imgType + ":" + uuid, bytes, Duration.ofMinutes(ttl));
-        return uuid;
-    }
+    String cacheImage(BufferedImage img, String imgType) throws IOException;
 
     /**
      * 缓存静态图片方法，要求输入 BufferedImage，返回 Redis 缓存的 UUID，默认 PNG
      *
-     * @param img
-     * @return
-     * @throws IOException
+     * @param img 要缓存的图片
+     * @return 缓存的UUID标识
+     * @throws IOException 图片处理异常
      */
-    public String cacheImage(BufferedImage img) throws IOException {
-        return cacheImage(img, "png");
-    }
+    String cacheImage(BufferedImage img) throws IOException;
 
     /**
      * 缓存静态图片方法，要求输入 byte[]，返回 Redis 缓存的 UUID
      * ** 所有缓存方法都以本方法为入口 **
      *
-     * @param bytes
-     * @param imgType
-     * @return
+     * @param bytes   图片字节数组
+     * @param imgType 图片类型
+     * @return 缓存的UUID标识
      */
-    public String cacheImage(byte[] bytes, String imgType) {
-        if (bytes.length > maxSize) {
-            throw new IllegalArgumentException("Image size exceeds limit: " + bytes.length + " > " + maxSize);
-        }
-        String uuid = UUID.randomUUID().toString();
-        redisTemplate.opsForValue().set("temp:image:" + imgType + ":" + uuid, bytes, Duration.ofMinutes(ttl));
-        return uuid;
-    }
+    String cacheImage(byte[] bytes, String imgType);
 
     /**
      * 缓存静态图片方法，要求输入 byte[]，返回 Redis 缓存的 UUID，默认 GIF
      *
-     * @param bytes
-     * @return
+     * @param bytes 图片字节数组
+     * @return 缓存的UUID标识
      */
-    public String cacheImage(byte[] bytes) {
-        return cacheImage(bytes, "gif");
-    }
+    String cacheImage(byte[] bytes);
 
     /**
      * 缓存多张静态图片的方法，要求输入 List<BufferedImage>，返回 Redis 缓存的 UUIDs
      *
-     * @param imgs
-     * @param imgTypes
-     * @return
-     * @throws IOException
+     * @param imgs     图片列表
+     * @param imgTypes 图片类型列表
+     * @return UUID列表
+     * @throws IOException 图片处理异常
      */
-    public List<String> cacheImage(List<BufferedImage> imgs, List<String> imgTypes) throws IOException {
-        if (imgs.size() != imgTypes.size()) throw new IllegalArgumentException("size of imgs and types not matched");
-        List<String> uuids = new ArrayList<>(imgs.size());
-        for (int i = 0; i < imgs.size(); i++) {
-            uuids.add(cacheImage(imgs.get(i), imgTypes.get(i)));
-        }
-        return uuids;
-    }
+    List<String> cacheImage(List<BufferedImage> imgs, List<String> imgTypes) throws IOException;
 
     /**
      * 缓存多张静态图片的方法，要求输入 List<BufferedImage>，返回 Redis 缓存的 UUIDs，默认 PNG
      *
-     * @param imgs
-     * @return
-     * @throws IOException
+     * @param imgs 图片列表
+     * @return UUID列表
+     * @throws IOException 图片处理异常
      */
-    public List<String> cacheImage(List<BufferedImage> imgs) throws IOException {
-        List<String> imgTypes = Collections.nCopies(imgs.size(), "png");
-        return cacheImage(imgs, imgTypes);
-    }
+    List<String> cacheImage(List<BufferedImage> imgs) throws IOException;
 
     /**
      * 缓存多张静态图片的方法，要求输入 byte[][]，返回 Redis 缓存的 UUIDs
      *
-     * @param bytesList
-     * @param imgTypes
-     * @return
+     * @param bytesList 图片字节数组列表
+     * @param imgTypes  图片类型列表
+     * @return UUID列表
      */
-    public List<String> cacheImage(byte[][] bytesList, List<String> imgTypes) {
-        if (bytesList.length != imgTypes.size())
-            throw new IllegalArgumentException("size of bytes list and types not matched");
-        List<String> uuids = new ArrayList<>(bytesList.length);
-        for (int i = 0; i < bytesList.length; i++) {
-            uuids.add(cacheImage(bytesList[i], imgTypes.get(i)));
-        }
-        return uuids;
-    }
+    List<String> cacheImage(byte[][] bytesList, List<String> imgTypes);
 
     /**
      * 缓存多张静态图片的方法，要求输入 byte[][]，返回 Redis 缓存的 UUIDs，默认 GIF
      *
-     * @param bytesList
-     * @return
+     * @param bytesList 图片字节数组列表
+     * @return UUID列表
      */
-    public List<String> cacheImage(byte[][] bytesList) {
-        List<String> imgTypes = Collections.nCopies(bytesList.length, "gif");
-        return cacheImage(bytesList, imgTypes);
-    }
-
-
+    List<String> cacheImage(byte[][] bytesList);
 }

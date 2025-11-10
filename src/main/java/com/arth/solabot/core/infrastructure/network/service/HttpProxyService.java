@@ -8,7 +8,7 @@ import org.springframework.web.server.ServerWebInputException;
 import java.io.IOException;
 
 /**
- * HTTP 代理服务接口
+ * 通用 HTTP 代理服务接口：
  * 提供请求转发、请求信息获取等功能
  */
 public interface HttpProxyService {

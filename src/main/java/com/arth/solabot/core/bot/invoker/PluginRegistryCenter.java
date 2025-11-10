@@ -10,9 +10,8 @@ import com.arth.solabot.plugin.system.Plugin;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.aop.support.AopUtils;
 import org.springframework.context.ApplicationContext;
-import org.springframework.context.annotation.ClassPathScanningCandidateComponentProvider;
-import org.springframework.core.type.filter.AnnotationTypeFilter;
 import org.springframework.stereotype.Component;
 
 import java.lang.invoke.MethodHandle;
@@ -34,12 +33,7 @@ import static java.lang.reflect.Modifier.isPublic;
  */
 @Slf4j
 @Component
-public class PluginRegistry {
-
-    /**
-     * 插件根包路径
-     */
-    private static final String PLUGIN_BASE_PACKAGE = "com.arth.solabot.plugin.custom";
+public class PluginRegistryCenter {
 
     @Resource
     private ApplicationContext applicationContext;
@@ -62,33 +56,28 @@ public class PluginRegistry {
 
     @PostConstruct
     void init() {
-        log.info("[core.bot.invoker] scanning plugins under {}", PLUGIN_BASE_PACKAGE);
         try {
-            ClassPathScanningCandidateComponentProvider scanner =
-                    new ClassPathScanningCandidateComponentProvider(false);
-            scanner.addIncludeFilter(new AnnotationTypeFilter(BotPlugin.class));
+            // 获取所有 Plugin 及其子类的 Bean 单实例
+            Map<String, Plugin> pluginBeans = applicationContext.getBeansOfType(Plugin.class);
+            for (Map.Entry<String, Plugin> entry : pluginBeans.entrySet()) {
+                String beanName = entry.getKey();
+                Plugin pluginInstance = entry.getValue();
+                Class<?> clazz = pluginInstance.getClass();
 
-            for (var bd : scanner.findCandidateComponents(PLUGIN_BASE_PACKAGE)) {
-                Class<?> clazz = Class.forName(bd.getBeanClassName());
-                if (!isPublic(clazz.getModifiers())) continue;
-
-                BotPlugin pluginAnn = clazz.getAnnotation(BotPlugin.class);
+                // 跳过代理类，避免代理类抹除原类注解信息的问题（实际方法调用仍调用动态代理增强对象）
+                Class<?> targetClazz = AopUtils.getTargetClass(pluginInstance);
+                BotPlugin pluginAnn = targetClazz.getAnnotation(BotPlugin.class);
                 if (pluginAnn == null) continue;
 
-                // 创建未注册到容器的实例，手动注入 this，避免循环依赖
-                Object instance = applicationContext.getAutowireCapableBeanFactory().createBean(clazz);
-                if (instance instanceof Plugin plugin) plugin.setPluginRegistry(this);
+                // 创建 holder（glued 标记）
+                PluginHolder holder = new PluginHolder(pluginInstance, pluginAnn.glued());
 
-                // plugin holder（带 glue 标记）
-                PluginHolder holder = new PluginHolder(instance, pluginAnn.glued());
-
-                // 扫描 public 方法并注册命令别名
+                // 扫描带有 @BotCommand 注解的 public 方法并注册命令别名
                 for (Method m : clazz.getMethods()) {
                     BotCommand cmdAnn = m.getAnnotation(BotCommand.class);
                     if (cmdAnn == null) continue;
                     if (!isPublic(m.getModifiers())) continue;
-
-                    CommandHandler handler = createHandler(instance, m);
+                    CommandHandler handler = createHandler(pluginInstance, m);
                     for (String alias : cmdAnn.command()) {
                         String key = alias == null ? "" : alias.trim().toLowerCase(Locale.ROOT);
                         holder.addHandler(key, handler);
@@ -98,6 +87,7 @@ public class PluginRegistry {
 
                 // 为每个模块别名注册
                 for (String alias : pluginAnn.name()) {
+                    if (alias == null || alias.isBlank()) continue;
                     String key = alias.trim().toLowerCase(Locale.ROOT);
                     if (pluginRegistryMap.putIfAbsent(key, holder) != null) {
                         log.warn("[core.bot.invoker] duplicate plugin alias detected: {}", key);
@@ -105,17 +95,18 @@ public class PluginRegistry {
                 }
 
                 // 读取帮助文本
-                if (instance instanceof Plugin p) {
-                    String help = p.getHelpText();
-                    if (help != null) {
-                        helpTextMap.put(clazz.getSimpleName(), help);
-                        for (String alias : pluginAnn.name()) {
-                            if (alias != null && !alias.isBlank()) {
-                                helpTextMap.putIfAbsent(alias.trim().toLowerCase(Locale.ROOT), help);
-                            }
+                String help = pluginInstance.getHelpText();
+                if (help != null) {
+                    helpTextMap.put(clazz.getSimpleName(), help);
+                    for (String alias : pluginAnn.name()) {
+                        if (alias != null && !alias.isBlank()) {
+                            helpTextMap.putIfAbsent(alias.trim().toLowerCase(Locale.ROOT), help);
                         }
                     }
                 }
+
+                // 设置 pluginRegistry 引用（用于插件内部调用）
+                pluginInstance.setPluginRegistry(this);
                 log.info("[core.bot.invoker] registered plugin: {} -> {}", Arrays.toString(pluginAnn.name()), clazz.getSimpleName());
             }
         } catch (Exception e) {
@@ -123,10 +114,6 @@ public class PluginRegistry {
             throw new InternalServerErrorException(
                     "Internal Server Error: failed to initialize PluginRegistry",
                     "框架初始化失败，请检查插件注册逻辑。");
-        }
-
-        if (pluginRegistryMap.isEmpty()) {
-            log.warn("[core.bot.invoker] no plugins found under {}", PLUGIN_BASE_PACKAGE);
         }
     }
 

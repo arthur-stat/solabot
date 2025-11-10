@@ -10,7 +10,7 @@ import com.arth.solabot.core.infrastructure.LocalData;
 import com.arth.solabot.core.infrastructure.cache.service.ImageCacheService;
 import com.arth.solabot.core.infrastructure.database.mapper.PjskBindingMapper;
 import com.arth.solabot.core.infrastructure.network.NetworkUtil;
-import com.arth.solabot.core.infrastructure.network.service.impl.ImgNetworkServiceImpl;
+import com.arth.solabot.core.infrastructure.network.service.ImgNetworkService;
 import com.arth.solabot.plugin.custom.pjsk.func.General;
 import com.arth.solabot.plugin.custom.pjsk.func.Mysekai;
 import com.arth.solabot.plugin.custom.pjsk.func.Suite;
@@ -100,7 +100,7 @@ public class Pjsk extends Plugin {
     private final ImageCacheService imageCacheService;
     private final PjskBindingMapper pjskBindingMapper;
     private final ObjectMapper objectMapper;
-    private final ImgNetworkServiceImpl imgService;
+    private final ImgNetworkService imgService;
     private final DateTimeFormatter dateTimeFormatter = DateTimeFormatter
             .ofPattern("yyyy-MM-dd HH:mm:ss")
             .withZone(ZoneId.of("Asia/Shanghai"));
@@ -158,7 +158,7 @@ public class Pjsk extends Plugin {
         ImageCacheService imageCacheService();
         PjskBindingMapper pjskBindingMapper();
         ObjectMapper objectMapper();
-        ImgNetworkServiceImpl imgService();
+        ImgNetworkService imgService();
         DateTimeFormatter dateTimeFormatter();
         String suiteApi();
         String mysekaiApi();
@@ -176,7 +176,7 @@ public class Pjsk extends Plugin {
             ImageCacheService imageCacheService,
             PjskBindingMapper pjskBindingMapper,
             ObjectMapper objectMapper,
-            ImgNetworkServiceImpl imgService,
+            ImgNetworkService imgService,
             DateTimeFormatter dateTimeFormatter,
             String suiteApi,
             String mysekaiApi,

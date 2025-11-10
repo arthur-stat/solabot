@@ -14,7 +14,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * 图片网络服务接口
+ * 插件 Img 的网络服务接口
  */
 public interface ImgNetworkService {
 

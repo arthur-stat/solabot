@@ -177,7 +177,7 @@ public class Gallery extends Plugin {
             updateMapsAndDrawThumbnailsWithLock();
             sender.replyText(payload, "已同步至最新图库……更新了" + count + "张图片");
         } catch (Exception e) {
-            sender.replyText(payload, "同步图库失败：" + e.getCause());
+            sender.replyText(payload, "同步图库失败：" + e);
         }
     }
 
