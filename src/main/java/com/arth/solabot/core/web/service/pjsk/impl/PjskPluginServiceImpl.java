@@ -10,10 +10,12 @@ import com.arth.solabot.core.web.UserFileHandler;
 import com.arth.solabot.core.web.service.pjsk.PjskPluginService;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.PathResource;
 import org.springframework.core.io.Resource;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -22,6 +24,7 @@ import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class PjskPluginServiceImpl implements PjskPluginService {
@@ -49,10 +52,10 @@ public class PjskPluginServiceImpl implements PjskPluginService {
     }
 
     @Override
-    public ProxyResponse proxyUpload(HttpServletRequest request, String original) throws IOException {
+    public ResponseEntity<Resource> proxyUpload(HttpServletRequest request, String original) throws IOException {
         final byte[] reqBody = httpProxyService.readBody(request);
-        var upstream = httpProxyService.proxyRequest(original, request, reqBody);
-
+        ResponseEntity<Resource> upstream = httpProxyService.proxyRequest(original, request, reqBody);
+        log.debug("[adapter.http] proxied successfully status={}", upstream.getStatusCode().value());
         byte[] tmp = new byte[0];
         if (upstream.getBody() instanceof ByteArrayResource bar) {
             tmp = bar.getByteArray();
@@ -71,12 +74,7 @@ public class PjskPluginServiceImpl implements PjskPluginService {
         headers.put("X-Upstream-Status", String.valueOf(upstream.getStatusCode().value()));
         networkUtil.asyncPost("http://localhost:8849/upload", contentType, upstreamBytes, headers);
 
-        Resource body = upstream.getBody();
-        if (body == null) {
-            throw new ResourceNotFoundException("upstream no body", "上游无响应体");
-        }
-
-        return new ProxyResponse(body, upstream.getHeaders(), upstream.getStatusCode());
+        return upstream;
     }
 
     @Override

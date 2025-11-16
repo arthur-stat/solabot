@@ -200,20 +200,21 @@ public class NetworkUtil {
      * @param headers
      * @return
      */
-    public Mono<String> asyncRequest(HttpMethod method,
+    public void asyncRequest(HttpMethod method,
                                      String url,
                                      MediaType contentType,
                                      Object body,
                                      Map<String, String> headers) {
-        return webClient.method(method)
+        webClient.method(method)
                 .uri(url)
                 .headers(h -> headers.forEach(h::add))
                 .contentType(contentType)
                 .bodyValue(body)
                 .retrieve()
                 .bodyToMono(String.class)
-                .doOnError(e -> log.error("async request failed", e))
-                .doOnSuccess(resp -> log.debug("async response: {}", resp));
+                .doOnError(e -> log.error("async request failed for url: {}", url, e))
+                .doOnSuccess(resp -> log.debug("async response for url {}: {}", url, resp))
+                .subscribe();
     }
 
 
@@ -226,10 +227,10 @@ public class NetworkUtil {
      * @param headers
      * @return
      */
-    public Mono<String> asyncPost(String targetUri,
+    public void asyncPost(String targetUri,
                                   MediaType contentType,
                                   Object body,
                                   Map<String, String> headers) {
-        return asyncRequest(HttpMethod.POST, targetUri, contentType, body, headers);
+        asyncRequest(HttpMethod.POST, targetUri, contentType, body, headers);
     }
 }

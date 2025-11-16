@@ -84,26 +84,20 @@ public class PjskPluginController {
     }
 
     /**
-     * 模块重定向至此处，后端负责向游戏服务器请求数据
+     * 模块重定向至此处，后端负责向游戏服务器请求数据；
+     * 作为要求进行透明代理请求的特殊方法，该方法单独特殊处理，不包装为 ResponseDTO
      *
      * @param request
      * @param original
      * @return
      * @throws IOException
      */
-    @UnwrapData
     @RequestMapping(path = ApiPaths.MYSEKAI_UPLOAD_PROXY, method = {RequestMethod.GET, RequestMethod.POST})
-    public ResponseEntity<ResponseDTO<Resource>> proxyUpload(
+    public ResponseEntity<Resource> proxyUpload(
             HttpServletRequest request,
             @RequestParam("original") String original
     ) throws IOException {
-        PjskPluginService.ProxyResponse resp = pjskPluginService.proxyUpload(request, original);
-
-        Resource body = resp.body;
-        if (body == null) {
-            throw new ResourceNotFoundException("upstream no body", "上游无响应体");
-        }
-        return ResponseEntity.status(resp.status).headers(resp.headers).body(ResponseDTO.success(body));
+        return pjskPluginService.proxyUpload(request, original);
     }
 
     /**
