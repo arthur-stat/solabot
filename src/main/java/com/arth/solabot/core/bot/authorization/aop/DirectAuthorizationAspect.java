@@ -4,7 +4,8 @@ import com.arth.solabot.core.bot.authorization.annotation.DirectAuthInterceptor;
 import com.arth.solabot.core.bot.authorization.model.AuthMode;
 import com.arth.solabot.core.bot.authorization.model.AuthScope;
 import com.arth.solabot.core.bot.dto.ParsedPayloadDTO;
-import com.arth.solabot.core.bot.exception.PermissionDeniedException;
+import com.arth.solabot.core.infrastructure.exception.BadRequestException;
+import com.arth.solabot.core.infrastructure.exception.ForbiddenException;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
@@ -69,11 +70,11 @@ public class DirectAuthorizationAspect {
 
         // 3) USER 优先
         if (!evaluateScope(rules, AuthScope.USER, payload.getUserId(), ctx)) {
-            throw new PermissionDeniedException("用户" + payload.getUserId() + "权限不足", "用户" + payload.getUserId() + "权限不足");
+            throw new ForbiddenException("用户" + payload.getUserId() + "权限不足", "用户" + payload.getUserId() + "权限不足");
         }
         // 4) GROUP 其次
         if (!evaluateScope(rules, AuthScope.GROUP, payload.getGroupId(), ctx)) {
-            throw new PermissionDeniedException("群组" + payload.getGroupId() + "权限不足", "群组" + payload.getGroupId() + "权限不足");
+            throw new ForbiddenException("群组" + payload.getGroupId() + "权限不足", "群组" + payload.getGroupId() + "权限不足");
         }
 
         return pjp.proceed();
@@ -144,7 +145,7 @@ public class DirectAuthorizationAspect {
                 if (e instanceof Number) {
                     out.add(((Number) e).longValue());
                 } else if (e != null) {
-                    // throw new IllegalArgumentException("targets array elements are non-numeric");
+                    // ignored non-numeric elements
                 }
             }
             return out;
@@ -156,14 +157,15 @@ public class DirectAuthorizationAspect {
                 if (e instanceof Number) {
                     out.add(((Number) e).longValue());
                 } else if (e != null) {
-                    // throw new IllegalArgumentException("targets collection elements are non-numeric");
+                    // ignored non-numeric elements
                 }
             }
             return out;
         }
 
-        throw new IllegalArgumentException(
-                "targets only accept Number / primitive arrays / Iterable<Number>, actual:" + clazz);
+        throw new BadRequestException(
+                "targets only accept Number / primitive arrays / Iterable<Number>, actual:" + clazz,
+                "授权 targets 参数类型不支持");
     }
 
 }

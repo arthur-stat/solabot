@@ -1,4 +1,4 @@
-package com.arth.solabot.core.bot.exception;
+package com.arth.solabot.core.infrastructure.exception;
 
 public class InternalServerErrorException extends BusinessException {
 
@@ -10,7 +10,7 @@ public class InternalServerErrorException extends BusinessException {
         super(ErrorCode.INTERNAL_SERVER_ERROR, message, null);
     }
 
-    public InternalServerErrorException(String message, String description) {
-        super(ErrorCode.INTERNAL_SERVER_ERROR, message, description);
+    public InternalServerErrorException(String message, String userMessage) {
+        super(ErrorCode.INTERNAL_SERVER_ERROR, message, userMessage);
     }
 }

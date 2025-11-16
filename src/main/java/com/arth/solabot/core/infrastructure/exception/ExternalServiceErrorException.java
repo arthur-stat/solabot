@@ -1,4 +1,4 @@
-package com.arth.solabot.core.bot.exception;
+package com.arth.solabot.core.infrastructure.exception;
 
 public class ExternalServiceErrorException extends BusinessException {
 
@@ -10,7 +10,7 @@ public class ExternalServiceErrorException extends BusinessException {
         super(ErrorCode.EXTERNAL_SERVICE_ERROR, message, null);
     }
 
-    public ExternalServiceErrorException(String message, String description) {
-        super(ErrorCode.EXTERNAL_SERVICE_ERROR, message, description);
+    public ExternalServiceErrorException(String message, String userMessage) {
+        super(ErrorCode.EXTERNAL_SERVICE_ERROR, message, userMessage);
     }
 }

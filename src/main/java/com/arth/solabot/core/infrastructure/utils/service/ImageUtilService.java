@@ -1,13 +1,8 @@
 package com.arth.solabot.core.infrastructure.utils.service;
 
-import lombok.Getter;
-import lombok.Setter;
-
 import javax.imageio.metadata.IIOMetadata;
 import javax.imageio.metadata.IIOMetadataNode;
 import java.awt.image.BufferedImage;
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * 图像处理工具类接口

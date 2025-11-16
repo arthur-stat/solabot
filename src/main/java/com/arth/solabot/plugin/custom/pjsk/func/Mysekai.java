@@ -4,14 +4,13 @@ import com.arth.solabot.adapter.controller.ApiPaths;
 import com.arth.solabot.adapter.sender.Sender;
 import com.arth.solabot.adapter.sender.action.ActionChainBuilder;
 import com.arth.solabot.core.bot.dto.ParsedPayloadDTO;
-import com.arth.solabot.core.bot.exception.InternalServerErrorException;
 import com.arth.solabot.core.infrastructure.LocalData;
 import com.arth.solabot.core.infrastructure.database.domain.PjskBinding;
-import com.arth.solabot.plugin.custom.Pjsk;
+import com.arth.solabot.core.infrastructure.exception.InternalServerErrorException;
+import com.arth.solabot.core.infrastructure.exception.ResourceNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -72,9 +71,9 @@ public class Mysekai {
                 updatedTime = dateTimeFormatter.format(timestamp.toInstant());
             } catch (IOException e) {
                 sender.replyText(payload, "MySekai 数据存在，但获取更新日期失败: 抛出了 IOException");
-                throw new InternalServerErrorException("IOException: " + e.getCause().getMessage(), "MySekai 数据存在，但获取更新日期失败: IOException");
+                throw new InternalServerErrorException("IOException: " + (e.getMessage() != null ? e.getMessage() : e.toString()), "MySekai 数据存在，但获取更新日期失败: IOException");
             }
-        } catch (FileNotFoundException e) {
+        } catch (ResourceNotFoundException e) {
             sender.replyText(payload, "服务器上没有找到你的 MySekai 数据，可能是抓包未成功，小概率服务器解析失败，需要根据日志分析");
             return;
         }
@@ -93,11 +92,11 @@ public class Mysekai {
         sender.pushActionJSON(payload.getSelfId(), json);
     }
 
-    private Path getFilePath(String region, String pjskId) throws FileNotFoundException {
+    private Path getFilePath(String region, String pjskId) {
         Path dir = LocalData.PJSK_MYSEKAI_MAP;
-        if (!Files.exists(dir) || !Files.isDirectory(dir)) throw new FileNotFoundException("path does not exist");
+        if (!Files.exists(dir) || !Files.isDirectory(dir)) throw new ResourceNotFoundException("path does not exist", "路径不存在");
         Path filePath = dir.resolve(region + "_" + pjskId + ".png");
-        if (!Files.exists(filePath)) throw new FileNotFoundException("File not found: " + filePath.getFileName());
+        if (!Files.exists(filePath)) throw new ResourceNotFoundException("File not found: " + filePath.getFileName(), "文件未找到: " + filePath.getFileName());
         return filePath;
     }
 

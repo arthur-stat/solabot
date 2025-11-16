@@ -1,6 +1,7 @@
 package com.arth.solabot.core.infrastructure.cache.service.impl;
 
 import com.arth.solabot.core.infrastructure.cache.service.ImageCacheService;
+import com.arth.solabot.core.infrastructure.exception.BadRequestException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -68,7 +69,8 @@ public class ImageCacheServiceImpl implements ImageCacheService {
     @Override
     public String cacheImage(byte[] bytes, String imgType) {
         if (bytes.length > maxSize) {
-            throw new IllegalArgumentException("Image size exceeds limit: " + bytes.length + " > " + maxSize);
+            throw new BadRequestException("Image size exceeds limit: " + bytes.length + " > " + maxSize,
+                    "图片大小超过限制");
         }
         String uuid = UUID.randomUUID().toString();
         redisTemplate.opsForValue().set("temp:image:" + imgType + ":" + uuid, bytes, Duration.ofMinutes(ttl));
@@ -96,7 +98,7 @@ public class ImageCacheServiceImpl implements ImageCacheService {
      */
     @Override
     public List<String> cacheImage(List<BufferedImage> imgs, List<String> imgTypes) throws IOException {
-        if (imgs.size() != imgTypes.size()) throw new IllegalArgumentException("size of imgs and types not matched");
+        if (imgs.size() != imgTypes.size()) throw new BadRequestException("size of imgs and types not matched", "图片和类型数量不匹配");
         List<String> uuids = new ArrayList<>(imgs.size());
         for (int i = 0; i < imgs.size(); i++) {
             uuids.add(cacheImage(imgs.get(i), imgTypes.get(i)));
@@ -127,7 +129,7 @@ public class ImageCacheServiceImpl implements ImageCacheService {
     @Override
     public List<String> cacheImage(byte[][] bytesList, List<String> imgTypes) {
         if (bytesList.length != imgTypes.size())
-            throw new IllegalArgumentException("size of bytes list and types not matched");
+            throw new BadRequestException("size of bytes list and types not matched", "字节数组和类型数量不匹配");
         List<String> uuids = new ArrayList<>(bytesList.length);
         for (int i = 0; i < bytesList.length; i++) {
             uuids.add(cacheImage(bytesList[i], imgTypes.get(i)));

@@ -1,9 +1,9 @@
 package com.arth.solabot.core.bot.invoker;
 
 import com.arth.solabot.core.bot.dto.ParsedPayloadDTO;
-import com.arth.solabot.core.bot.exception.BusinessException;
-import com.arth.solabot.core.bot.exception.CommandNotFoundException;
-import com.arth.solabot.core.bot.exception.InternalServerErrorException;
+import com.arth.solabot.core.infrastructure.exception.BusinessException;
+import com.arth.solabot.core.infrastructure.exception.CommandNotFoundException;
+import com.arth.solabot.core.infrastructure.exception.InternalServerErrorException;
 import com.arth.solabot.plugin.system.DefaultStrategy;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

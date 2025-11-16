@@ -1,5 +1,7 @@
 package com.arth.solabot.core.web;
 
+import com.arth.solabot.core.infrastructure.exception.BadRequestException;
+import com.arth.solabot.core.infrastructure.exception.InternalServerErrorException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.msgpack.core.MessagePack;
@@ -85,9 +87,9 @@ public final class PlayerDataDecryptor {
      * @throws Exception 发生解密或填充错误时抛出
      */
     public PlayerDataDecryptor decrypt(byte[] cipherBody) throws Exception {
-        if (cipherBody == null) throw new IllegalArgumentException("cipherBody == null");
+        if (cipherBody == null) throw new BadRequestException("cipherBody == null", "cipherBody 为空");
         KeySet ks = KEYSETS.get(region);
-        if (ks == null) throw new IllegalStateException("Missing keyset for region: " + region);
+        if (ks == null) throw new InternalServerErrorException("Missing keyset for region: " + region, "缺少 region 对应的 keyset");
 
         Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
         SecretKeySpec sk = new SecretKeySpec(ks.key, "AES");
@@ -101,7 +103,7 @@ public final class PlayerDataDecryptor {
      * 便捷：接受 Base64 编码的密文字符串，解码后再执行 decrypt(byte[]).
      */
     public PlayerDataDecryptor decryptFromBase64(String base64Cipher) throws Exception {
-        if (base64Cipher == null) throw new IllegalArgumentException("base64Cipher == null");
+        if (base64Cipher == null) throw new BadRequestException("base64Cipher == null", "base64Cipher 为空");
         byte[] cipherBytes = Base64.getDecoder().decode(base64Cipher);
         return decrypt(cipherBytes);
     }
@@ -113,7 +115,7 @@ public final class PlayerDataDecryptor {
      * @throws Exception 若尚未解密或解析失败
      */
     public JsonNode toJsonNode() throws Exception {
-        if (plainBytes == null) throw new IllegalStateException("no plaintext available. Call decrypt(...) first.");
+        if (plainBytes == null) throw new InternalServerErrorException("no plaintext available. Call decrypt(...) first.", "未解密，请先调用 decrypt");
         ObjectMapper mapper = this.objectMapper != null ? this.objectMapper : new ObjectMapper();
         Object javaObj = msgpackToObject(plainBytes);
         return mapper.valueToTree(javaObj);

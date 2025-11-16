@@ -1,4 +1,4 @@
-package com.arth.solabot.core.bot.exception;
+package com.arth.solabot.core.infrastructure.exception;
 
 public class CommandNotFoundException extends BusinessException {
 
@@ -10,7 +10,7 @@ public class CommandNotFoundException extends BusinessException {
         super(ErrorCode.COMMAND_NOT_FOUND, message, null);
     }
 
-    public CommandNotFoundException(String message, String description) {
-        super(ErrorCode.COMMAND_NOT_FOUND, message, description);
+    public CommandNotFoundException(String message, String userMessage) {
+        super(ErrorCode.COMMAND_NOT_FOUND, message, userMessage);
     }
 }

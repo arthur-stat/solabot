@@ -87,7 +87,8 @@ public class ControllerLoggingAspect {
     }
 
     /**
-     * 如果不加判断地让 Jackson 序列化目标文件以打印日志，我发现在 Windows 上会导致触发 truncate 从而损坏文件，这非常严重
+     * 如果不加判断地让 Jackson 序列化目标文件以打印日志，我发现在 Windows 上会导致触发 truncate 从而损坏文件，这非常严重；
+     * Linux 上未测试后果，但经过这里处理后已验证在 Windows 与 Linux 上不会产生问题。
      */
     private boolean isSerializableResponse(Object result) {
         if (result == null) return true;

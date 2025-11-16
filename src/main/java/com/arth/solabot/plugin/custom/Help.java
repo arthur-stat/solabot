@@ -47,7 +47,7 @@ public class Help extends Plugin {
 
         if (payload.getGroupId() != null && Set.of(619096416L, 1036993047L, 570656202L, 992406250L, 916204609L, 793709714L).contains(payload.getGroupId())) {
             building.addCustomNode(payload.getSelfId(), "bot", n -> n.text("""
-                            我们的绑定功能没有接游戏 api，目前唯一的作用是定位自己的 mysekai，所以输错了也不会有提示"""))
+                            我们的绑定功能没有接游戏 api，目前唯一的作用是定位自己的数据，所以输错了也不会有提示"""))
                     .addCustomNode(payload.getSelfId(), "bot", n -> n.text("""
                             👇要使用 mysekai 功能，iOS 请将使用下面的模块配置，以国服mysekai + Shadowracket为例（需要其他模块可联系我）：在 配置→模块→右上角➕︎号，填入下面这个地址："""))
                     .addCustomNode(payload.getSelfId(), "bot", n -> n.text(apiPaths.getShadowrocketModuleDownloadMysekaiCn()))

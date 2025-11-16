@@ -1,8 +1,8 @@
 package com.arth.solabot.plugin.custom.pjsk.func;
 
-import com.arth.solabot.core.bot.exception.InternalServerErrorException;
-import com.arth.solabot.core.bot.exception.ResourceNotFoundException;
 import com.arth.solabot.core.infrastructure.LocalData;
+import com.arth.solabot.core.infrastructure.exception.InternalServerErrorException;
+import com.arth.solabot.core.infrastructure.exception.ResourceNotFoundException;
 import com.arth.solabot.core.infrastructure.network.service.ImageRequestService;
 import com.arth.solabot.plugin.custom.pjsk.model.PjskCard;
 import lombok.RequiredArgsConstructor;
@@ -11,7 +11,6 @@ import org.springframework.stereotype.Component;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -34,8 +33,6 @@ public class AssetsBundleResources {
      *
      * @param card
      * @return
-     * @throws FileNotFoundException
-     * @throws IOException
      */
     public BufferedImage getOrCacheThumbnailByCard(PjskCard card) {
         try {
@@ -51,9 +48,10 @@ public class AssetsBundleResources {
                 }
             }
             return getThumbnailOnline(card.getAssetsbundleName(), card.getSpecialTrainingStatus());
-        } catch (FileNotFoundException e) {
-            throw new ResourceNotFoundException();
         } catch (IOException e) {
+            if (e instanceof java.nio.file.NoSuchFileException) {
+                throw new ResourceNotFoundException();
+            }
             throw new InternalServerErrorException();
         }
     }

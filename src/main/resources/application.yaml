@@ -15,6 +15,7 @@ app:
   # "http://192.168.1.10:8848"
 
   time-zone: "Asia/Shanghai"
+  cmd-thread-timeout: 600 # seconds
 
   parameter:
     cache:
@@ -72,7 +73,7 @@ spring:
   flyway:
     enabled: true
     locations: classpath:db/migration
-    clean-disabled: false  # 生产环境请删掉该字段，该字段若设置为 false，在每次启动应用时都会删库并重建以便于开发和测试
+    clean-disabled: true  # 生产环境请删掉该字段或设置为 true，若该字段若设置为 false，则在每次启动应用时都会删库并重建以便于开发和测试
 
   data:
     redis:

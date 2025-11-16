@@ -1,4 +1,4 @@
-package com.arth.solabot.core.bot.exception.handler;
+package com.arth.solabot.core.bot.handler;
 
 import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;

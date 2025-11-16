@@ -2,6 +2,7 @@ package com.arth.solabot.core.infrastructure.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
 
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.ExecutorService;
@@ -23,7 +24,19 @@ public class ConcurrencyConfig {
                     t.setDaemon(true);
                     return t;
                 },
-                new ThreadPoolExecutor.CallerRunsPolicy()  // 回退策略：队满回退至调用线程
-        );
+                new ThreadPoolExecutor.AbortPolicy()  // 回退策略：拒绝执行（抛出异常）
+        ) {
+            @Override
+            protected void beforeExecute(Thread t, Runnable r) {
+                super.beforeExecute(t, r);
+                // 这里可以添加计时相关的逻辑
+            }
+
+            @Override
+            protected void afterExecute(Runnable r, Throwable t) {
+                super.afterExecute(r, t);
+                // 这里可以添加清理相关的逻辑
+            }
+        };
     }
 }

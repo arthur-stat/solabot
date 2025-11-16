@@ -1,4 +1,4 @@
-package com.arth.solabot.core.bot.exception;
+package com.arth.solabot.core.infrastructure.exception;
 
 public class InvalidCommandArgsException extends BusinessException {
 
@@ -10,7 +10,7 @@ public class InvalidCommandArgsException extends BusinessException {
          super(ErrorCode.INVALID_COMMAND_ARGS, message, null);
     }
 
-    public InvalidCommandArgsException(String message, String description) {
-        super(ErrorCode.INVALID_COMMAND_ARGS, message, description);
+    public InvalidCommandArgsException(String message, String userMessage) {
+        super(ErrorCode.INVALID_COMMAND_ARGS, message, userMessage);
     }
 }

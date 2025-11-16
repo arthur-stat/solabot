@@ -2,11 +2,11 @@ package com.arth.solabot.plugin.custom.pjsk.func;
 
 import com.arth.solabot.adapter.sender.Sender;
 import com.arth.solabot.core.bot.dto.ParsedPayloadDTO;
-import com.arth.solabot.core.bot.exception.BusinessException;
-import com.arth.solabot.core.bot.exception.InvalidCommandArgsException;
-import com.arth.solabot.core.bot.exception.ResourceNotFoundException;
 import com.arth.solabot.core.infrastructure.database.domain.PjskBinding;
 import com.arth.solabot.core.infrastructure.database.mapper.PjskBindingMapper;
+import com.arth.solabot.core.infrastructure.exception.BusinessException;
+import com.arth.solabot.core.infrastructure.exception.InvalidCommandArgsException;
+import com.arth.solabot.core.infrastructure.exception.ResourceNotFoundException;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;

@@ -1,36 +1,28 @@
 package com.arth.solabot.adapter.controller.http;
 
 import com.arth.solabot.adapter.controller.ApiPaths;
-import com.arth.solabot.adapter.controller.http.dto.ApiResponse;
-import com.arth.solabot.core.infrastructure.LocalData;
-import com.arth.solabot.core.infrastructure.network.NetworkUtil;
-import com.arth.solabot.core.infrastructure.network.service.HttpProxyService;
-import com.arth.solabot.core.web.UserFileHandler;
+import com.arth.solabot.adapter.controller.http.advice.UnwrapData;
+import com.arth.solabot.adapter.controller.http.dto.ResponseDTO;
+import com.arth.solabot.core.infrastructure.exception.ResourceNotFoundException;
+import com.arth.solabot.core.web.service.pjsk.PjskPluginService;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.core.io.ByteArrayResource;
-import org.springframework.core.io.PathResource;
 import org.springframework.core.io.Resource;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.io.InputStream;
-import java.util.HashMap;
-import java.util.Map;
 
 @Slf4j
 @RestController
 @RequiredArgsConstructor
 public class PjskPluginController {
 
-    private final HttpProxyService httpProxyService;
-    private final LocalData localData;
-    private final UserFileHandler userFileHandler;
-    private final NetworkUtil networkUtil;
+    private final PjskPluginService pjskPluginService;
 
     /**
      * Mysekai 透视 map 请求
@@ -40,12 +32,13 @@ public class PjskPluginController {
      * @return
      * @throws IOException
      */
+    @UnwrapData
     @GetMapping(ApiPaths.PJSK_MYSEKAI_MAP)
-    public ResponseEntity<Resource> getMysekaiMap(@PathVariable String region, @PathVariable String id) throws IOException {
-        Resource resource = localData.resolveMysekaiResourcePath(LocalData.PJSK_MYSEKAI_MAP, region, id);
+    public ResponseEntity<ResponseDTO<Resource>> getMysekaiMap(@PathVariable String region, @PathVariable String id) throws IOException {
+        Resource resource = pjskPluginService.getMysekaiMap(region, id);
         return ResponseEntity.ok()
                 .contentType(MediaType.IMAGE_PNG)
-                .body(resource);
+                .body(ResponseDTO.success(resource));
     }
 
 
@@ -57,12 +50,13 @@ public class PjskPluginController {
      * @return
      * @throws IOException
      */
+    @UnwrapData
     @GetMapping(ApiPaths.PJSK_MYSEKAI_OVERVIEW)
-    public ResponseEntity<Resource> getMysekaiOverview(@PathVariable String region, @PathVariable String id) throws IOException {
-        Resource resource = localData.resolveMysekaiResourcePath(LocalData.PJSK_MYSEKAI_OVERVIEW, region, id);
+    public ResponseEntity<ResponseDTO<Resource>> getMysekaiOverview(@PathVariable String region, @PathVariable String id) throws IOException {
+        Resource resource = pjskPluginService.getMysekaiOverview(region, id);
         return ResponseEntity.ok()
                 .contentType(MediaType.IMAGE_PNG)
-                .body(resource);
+                .body(ResponseDTO.success(resource));
     }
 
     /**
@@ -71,19 +65,21 @@ public class PjskPluginController {
      * @return
      * @throws IOException
      */
+    @UnwrapData
     @GetMapping(ApiPaths.SHADOWROCKET_MODULE_DOWNLOAD_MYSEKAI_CN)
-    public ResponseEntity<Resource> getShadowrocketModuleForCnMysekai() {
+    public ResponseEntity<ResponseDTO<Resource>> getShadowrocketModuleForCnMysekai() {
         try {
-            Resource resource = new PathResource(LocalData.SHADOWROCKET_MODULE_DOWNLOAD_MYSEKAI_CN);
-            if (!resource.exists()) return ResponseEntity.notFound().build();
+            Resource resource = pjskPluginService.getShadowrocketModuleForCnMysekai();
 
-            return ResponseEntity.ok()
-                    .contentType(MediaType.parseMediaType("text/plain; charset=utf-8"))
-                    .header("Content-Disposition", "inline; filename=\"" + resource.getFilename() + "\"")
-                    .body(resource);
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.parseMediaType("text/plain; charset=utf-8"));
+            headers.set(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + resource.getFilename() + "\"");
+            return ResponseEntity.ok().headers(headers).body(ResponseDTO.success(resource));
 
+        } catch (ResourceNotFoundException e) {
+            throw e;
         } catch (Exception e) {
-            return ResponseEntity.internalServerError().build();
+            return ResponseDTO.internalErrorEntity("server error");
         }
     }
 
@@ -95,33 +91,19 @@ public class PjskPluginController {
      * @return
      * @throws IOException
      */
+    @UnwrapData
     @RequestMapping(path = ApiPaths.MYSEKAI_UPLOAD_PROXY, method = {RequestMethod.GET, RequestMethod.POST})
-    public ResponseEntity<Resource> proxyUpload(
+    public ResponseEntity<ResponseDTO<Resource>> proxyUpload(
             HttpServletRequest request,
             @RequestParam("original") String original
     ) throws IOException {
-        final byte[] reqBody = httpProxyService.readBody(request);
-        ResponseEntity<Resource> upstream = httpProxyService.proxyRequest(original, request, reqBody);
-        log.debug("[adapter.http] proxied successfully status={}", upstream.getStatusCode().value());
-        byte[] tmp = new byte[0];
-        if (upstream.getBody() instanceof ByteArrayResource bar) {
-            tmp = bar.getByteArray();
-        } else if (upstream.getBody() != null) {
-            try (InputStream is = upstream.getBody().getInputStream()) {
-                tmp = is.readAllBytes();
-            }
+        PjskPluginService.ProxyResponse resp = pjskPluginService.proxyUpload(request, original);
+
+        Resource body = resp.body;
+        if (body == null) {
+            throw new ResourceNotFoundException("upstream no body", "上游无响应体");
         }
-        final byte[] upstreamBytes = tmp;
-        MediaType ct = upstream.getHeaders().getContentType();
-        if (ct == null) ct = MediaType.APPLICATION_OCTET_STREAM;
-        final MediaType contentType = ct;
-
-        Map<String, String> headers = new HashMap<>();
-        headers.put("X-Original-Url", original);
-        headers.put("X-Upstream-Status", String.valueOf(upstream.getStatusCode().value()));
-        networkUtil.asyncPost("http://localhost:8849/upload", contentType, upstreamBytes, headers);
-
-        return upstream;
+        return ResponseEntity.status(resp.status).headers(resp.headers).body(ResponseDTO.success(body));
     }
 
     /**
@@ -139,24 +121,13 @@ public class PjskPluginController {
      * @throws IOException
      */
     @PostMapping(ApiPaths.PJSK_WEB_UPLOAD)
-    public ApiResponse<String> upload(
+    public ResponseEntity<ResponseDTO<String>> upload(
             @RequestParam("file") MultipartFile file,
             @RequestParam("filetype") String filetype,
             @RequestParam("region") String region
     ) throws IOException {
 
-        byte[] body = file.getBytes();
-        ApiResponse<String> response = new ApiResponse<>();
-        switch (filetype) {
-            case "mysekai":
-                break;
-            case "suite":
-                response = userFileHandler.handleUploadedSuite(body, region);
-                break;
-            default:
-                throw new IllegalArgumentException("未知的 filetype: " + filetype);
-        }
-        return response;
-        //return ApiResponse.success("上传成功");
-    }  //TODO:与前端对接
+        ResponseDTO<String> response = pjskPluginService.handleUpload(file, filetype, region);
+        return ResponseDTO.from(response);
+    }
 }

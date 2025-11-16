@@ -1,7 +1,9 @@
 package com.arth.solabot.adapter.controller.http;
 
 import com.arth.solabot.adapter.controller.ApiPaths;
-import com.arth.solabot.core.infrastructure.LocalData;
+import com.arth.solabot.adapter.controller.http.advice.UnwrapData;
+import com.arth.solabot.adapter.controller.http.dto.ResponseDTO;
+import com.arth.solabot.core.web.service.GeneralBotService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.Resource;
 import org.springframework.http.MediaType;
@@ -18,7 +20,7 @@ import java.nio.file.Path;
 @RequiredArgsConstructor
 public class GeneralBotPluginController {
 
-    private final LocalData localData;
+    private final GeneralBotService generalBotService;
 
     /**
      * 插件 Gallery 的普通图像请求
@@ -27,9 +29,10 @@ public class GeneralBotPluginController {
      * @return
      * @throws IOException
      */
+    @UnwrapData
     @GetMapping(ApiPaths.GALLERY_IMG)
-    public ResponseEntity<Resource> getGalleryImg(@PathVariable String pid) throws IOException {
-        Resource resource = localData.getGalleryImgResource(pid);
+    public ResponseEntity<ResponseDTO<Resource>> getGalleryImg(@PathVariable String pid) throws IOException {
+        Resource resource = generalBotService.getGalleryImgResource(pid);
         Path path = resource.getFile().toPath();
 
         String contentType = Files.probeContentType(path);
@@ -37,7 +40,7 @@ public class GeneralBotPluginController {
 
         return ResponseEntity.ok()
                 .contentType(MediaType.parseMediaType(contentType))
-                .body(resource);
+                .body(ResponseDTO.success(resource));
     }
 
     /**
@@ -47,11 +50,12 @@ public class GeneralBotPluginController {
      * @return
      * @throws IOException
      */
+    @UnwrapData
     @GetMapping(ApiPaths.GALLERY_THUMBNAILS)
-    public ResponseEntity<Resource> getGalleryThumbnail(@PathVariable String role) throws IOException {
-        Resource resource = localData.getGalleryThumbnailResource(role);
+    public ResponseEntity<ResponseDTO<Resource>> getGalleryThumbnail(@PathVariable String role) throws IOException {
+        Resource resource = generalBotService.getGalleryThumbnailResource(role);
         return ResponseEntity.ok()
                 .contentType(MediaType.IMAGE_PNG)
-                .body(resource);
+                .body(ResponseDTO.success(resource));
     }
 }

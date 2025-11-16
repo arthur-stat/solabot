@@ -1,8 +1,8 @@
 package com.arth.solabot.core.infrastructure.cache.service;
 
-import com.arth.solabot.core.bot.exception.ExternalServiceErrorException;
-import com.arth.solabot.core.bot.exception.InternalServerErrorException;
-import com.arth.solabot.core.bot.exception.ResourceNotFoundException;
+import com.arth.solabot.core.infrastructure.exception.ExternalServiceErrorException;
+import com.arth.solabot.core.infrastructure.exception.InternalServerErrorException;
+import com.arth.solabot.core.infrastructure.exception.ResourceNotFoundException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;

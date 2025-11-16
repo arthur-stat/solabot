@@ -5,25 +5,31 @@ import com.arth.solabot.adapter.parser.PayloadParser;
 import com.arth.solabot.adapter.session.SessionRegistry;
 import com.arth.solabot.adapter.utils.LogUtils;
 import com.arth.solabot.core.bot.dto.ParsedPayloadDTO;
-import com.arth.solabot.core.bot.exception.BusinessException;
 import com.arth.solabot.core.bot.invoker.CommandInvoker;
+import com.arth.solabot.core.infrastructure.exception.BusinessException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.socket.CloseStatus;
 import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.handler.TextWebSocketHandler;
 
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.TimeUnit;
 
 @Slf4j
 @Controller
 @RequiredArgsConstructor
 public class OneBotWsController extends TextWebSocketHandler {
+
+    @Value("${app.cmd-thread-timeout}")
+    private int CMD_THREAD_TIMEOUT;
 
     private final SessionRegistry sessionRegistry;
     private final ExecutorService executorService;
@@ -39,6 +45,7 @@ public class OneBotWsController extends TextWebSocketHandler {
 
     /**
      * 启用分片读取 output buffer
+     *
      * @return
      */
     @Override
@@ -108,14 +115,20 @@ public class OneBotWsController extends TextWebSocketHandler {
                 log.debug("[adapter.ws] raw payload: {}", rawPayload);
 
                 /* 多线程异步解析命令 */
-                executorService.execute(() -> {
-                    try {
-                        commandInvoker.invoke(dto);
-                    } catch (BusinessException ignored) {
-                    } catch (Exception e) {
-                        log.error("async handle error", e);
-                    }
-                });
+                CompletableFuture.runAsync(() -> {
+                            try {
+                                commandInvoker.invoke(dto);
+                            } catch (BusinessException ignored) {
+                            } catch (Exception e) {
+                                log.error("async handle error", e);
+                            }
+                        }, executorService)
+                        .orTimeout(CMD_THREAD_TIMEOUT, TimeUnit.SECONDS)
+                        .whenComplete((result, throwable) -> {
+                            if (throwable != null) {
+                                log.warn("Command execution timed out or failed: {}", throwable.getMessage());
+                            }
+                        });
             }
 
         } catch (Exception e) {

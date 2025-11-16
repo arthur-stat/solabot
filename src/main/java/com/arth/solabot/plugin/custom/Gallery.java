@@ -253,14 +253,14 @@ public class Gallery extends Plugin {
                         }
 
                         boolean shouldDownload;
-                        imgLock.writeLock().lock();
+                        imgLock.readLock().lock();
                         try {
                             shouldDownload = !idToFile.containsKey(pid);
                         } catch (Exception e) {
                             log.error("[plugin.gallery] concurrency error", e);
                             throw e;
                         } finally {
-                            imgLock.writeLock().unlock();
+                            imgLock.readLock().unlock();
                         }
 
                         if (!shouldDownload) continue;

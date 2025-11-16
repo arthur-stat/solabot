@@ -1,8 +1,8 @@
-package com.arth.solabot.core.bot.exception.handler;
+package com.arth.solabot.core.bot.handler;
 
 import com.arth.solabot.adapter.sender.Sender;
 import com.arth.solabot.core.bot.dto.ParsedPayloadDTO;
-import com.arth.solabot.core.bot.exception.BusinessException;
+import com.arth.solabot.core.infrastructure.exception.BusinessException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.ProceedingJoinPoint;
@@ -48,7 +48,7 @@ public class BusinessExceptionHandlerAspect {
     }
 
     private void sendBusinessExceptionBack(BusinessException e, ParsedPayloadDTO payload) {
-        String description = e.getDescription();
+        String description = e.getUserMessage();
         if (description == null || description.isBlank()) return;
 
         if ("message".equalsIgnoreCase(behaviour)) {

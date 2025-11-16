@@ -1,6 +1,6 @@
 package com.arth.solabot.core.web;
 
-import com.arth.solabot.adapter.controller.http.dto.ApiResponse;
+import com.arth.solabot.adapter.controller.http.dto.ResponseDTO;
 import com.arth.solabot.core.infrastructure.LocalData;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -20,7 +20,7 @@ public class UserFileHandler {
     private final LocalData localData;
 
 
-    public ApiResponse<String> handleUploadedSuite(byte[] file, String region)   {
+    public ResponseDTO<String> handleUploadedSuite(byte[] file, String region)   {
         ObjectMapper mapper = new ObjectMapper();
         JsonNode node;
         try {
@@ -33,7 +33,7 @@ public class UserFileHandler {
                         .toJsonNode();
             }catch (Exception err) {
                 log.error(e.getMessage(),e);
-                return ApiResponse.error(500_01,"Error while decrypting file");
+                return ResponseDTO.error(500_01,"Error while decrypting file");
             }
         }
 
@@ -47,15 +47,15 @@ public class UserFileHandler {
             }
 
             Files.writeString(suitePath, mapper.writeValueAsString(node));
-            return ApiResponse.success("Upload success");
+            return ResponseDTO.success("Upload success");
 
         }catch (IOException e){
             log.error(e.getMessage(),e);
-            return ApiResponse.error(500_02,"Error while creating file");
+            return ResponseDTO.error(500_02,"Error while creating file");
         }
     }
 
-    public ApiResponse<String> handleUploadedMySekaiFile(byte[] file, String region) {
+    public ResponseDTO<String> handleUploadedMySekaiFile(byte[] file, String region) {
         return null;
     }
 

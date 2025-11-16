@@ -1,12 +1,14 @@
 package com.arth.solabot.core.infrastructure;
 
+import com.arth.solabot.core.infrastructure.exception.BadRequestException;
+import com.arth.solabot.core.infrastructure.exception.ForbiddenException;
+import com.arth.solabot.core.infrastructure.exception.ResourceNotFoundException;
 import com.arth.solabot.plugin.custom.Gallery;
 import com.arth.solabot.plugin.custom.pjsk.model.PjskCard;
 import org.springframework.core.io.PathResource;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
 
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -56,7 +58,7 @@ public class LocalData {
     public Resource resolveMysekaiResourcePath(Path baseDir, String region, String id) throws IOException {
         // 400: 参数格式
         if (!region.matches("[a-zA-Z]+") || !id.matches("[0-9]+")) {
-            throw new IllegalArgumentException("Invalid region or id format");
+            throw new BadRequestException("Invalid region or id format", "无效的 region 或 id 格式");
         }
 
         Path base = baseDir.normalize();
@@ -120,12 +122,12 @@ public class LocalData {
     public void verify(Path path, Path base) throws IOException {
         // 403: 安全校验，防止目录穿越
         if (!path.startsWith(base)) {
-            throw new SecurityException("Path traversal attempt detected");
+            throw new ForbiddenException("Path traversal attempt detected", "检测到路径穿越攻击");
         }
 
         // 404
         if (!Files.exists(path) || !Files.isRegularFile(path)) {
-            throw new FileNotFoundException("File not found");
+            throw new ResourceNotFoundException("File not found", "文件未找到");
         }
     }
 }

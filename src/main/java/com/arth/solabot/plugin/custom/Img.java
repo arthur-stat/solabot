@@ -3,10 +3,11 @@ package com.arth.solabot.plugin.custom;
 import com.arth.solabot.adapter.controller.ApiPaths;
 import com.arth.solabot.adapter.sender.Sender;
 import com.arth.solabot.core.bot.dto.ParsedPayloadDTO;
-import com.arth.solabot.core.bot.exception.InternalServerErrorException;
 import com.arth.solabot.core.bot.invoker.annotation.BotCommand;
 import com.arth.solabot.core.bot.invoker.annotation.BotPlugin;
 import com.arth.solabot.core.infrastructure.cache.service.ImageCacheService;
+import com.arth.solabot.core.infrastructure.exception.InternalServerErrorException;
+import com.arth.solabot.core.infrastructure.exception.InvalidCommandArgsException;
 import com.arth.solabot.core.infrastructure.network.model.GifData;
 import com.arth.solabot.core.infrastructure.network.service.ImageRequestService;
 import com.arth.solabot.core.infrastructure.utils.service.ImageUtilService;
@@ -688,7 +689,7 @@ public class Img extends Plugin {
     }
 
     private byte[] writeGifToBytes(List<BufferedImage> frames, List<Integer> delaysCs, int loopCount) throws IOException {
-        if (frames == null || frames.isEmpty()) throw new IllegalArgumentException("No frames");
+        if (frames == null || frames.isEmpty()) throw new InvalidCommandArgsException("No frames", "没有帧数据");
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
 
         ImageWriter writer = ImageIO.getImageWritersByFormatName("gif").next();
@@ -743,7 +744,7 @@ public class Img extends Plugin {
     }
 
     private GifData retime(GifData gif, double rateAbs, boolean reverse) {
-        if (rateAbs <= 0) throw new IllegalArgumentException("rate must be > 0");
+        if (rateAbs <= 0) throw new InvalidCommandArgsException("rate must be > 0", "速率必须大于 0");
 
         List<BufferedImage> frames = new ArrayList<>(gif.getFrames());
         List<Integer> delays = new ArrayList<>(gif.getDelaysCs());
@@ -1049,7 +1050,7 @@ public class Img extends Plugin {
                     }
                 }
             }
-            default -> throw new IllegalArgumentException("illegal angle argument");
+            default -> throw new InvalidCommandArgsException("illegal angle argument", "非法的旋转角度参数");
         }
 
         return dst;

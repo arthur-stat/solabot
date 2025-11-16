@@ -1,4 +1,4 @@
-package com.arth.solabot.core.bot.exception;
+package com.arth.solabot.core.infrastructure.exception;
 
 public class ResourceNotFoundException extends BusinessException {
 
@@ -10,7 +10,7 @@ public class ResourceNotFoundException extends BusinessException {
         super(ErrorCode.RESOURCE_NOT_FOUND, message, null);
     }
 
-    public ResourceNotFoundException(String message, String description) {
-        super(ErrorCode.RESOURCE_NOT_FOUND, message, description);
+    public ResourceNotFoundException(String message, String userMessage) {
+        super(ErrorCode.RESOURCE_NOT_FOUND, message, userMessage);
     }
 }

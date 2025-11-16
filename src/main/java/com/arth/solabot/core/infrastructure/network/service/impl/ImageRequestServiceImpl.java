@@ -6,7 +6,7 @@ import com.arth.solabot.core.bot.dto.ParsedPayloadDTO;
 import com.arth.solabot.core.bot.dto.ReplayedMessagePayloadDTO;
 import com.arth.solabot.core.bot.dto.replay.ImageRef;
 import com.arth.solabot.core.bot.dto.replay.MfaceRef;
-import com.arth.solabot.core.bot.exception.InvalidCommandArgsException;
+import com.arth.solabot.core.infrastructure.exception.InvalidCommandArgsException;
 import com.arth.solabot.core.infrastructure.network.model.GifData;
 import com.arth.solabot.core.infrastructure.network.service.ImageRequestService;
 import com.arth.solabot.core.infrastructure.utils.service.ImageUtilService;

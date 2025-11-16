@@ -88,6 +88,7 @@ public final class MemoryData {
         alias.put("tks", "tks");
         alias.put("天马司", "tks");
         alias.put("司", "tks");
+        alias.put("黄桃", "tks");
 
         alias.put("emu", "emu");
         alias.put("凤笑梦", "emu");
