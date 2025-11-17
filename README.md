@@ -1,6 +1,8 @@
 # solabot
 
-仅为重庆大学 PJSK 同好群「翼遥啤酒烧烤大排档」设计的独立 bot 服务。内容略。
+仅为重庆大学 PJSK 同好群「翼遥啤酒烧烤大排档」设计的独立 bot 服务。
+
+事实上这是一个出于感兴趣而设计的基于 Spring Boot 的完整 bot 框架，涵盖自接收 OneBot v11 报文起直至返回响应的全流程的实现，而不仅仅是一系列 PJSK 以及其他功能插件的集合。
 
 # version
 
@@ -57,4 +59,4 @@ mvn spring-boot:run  # java -jar target/bot-0.0.1-SNAPSHOT.jar
 
 # thanks
 
-Thanks to junior schoolmate [htrskmiku](https://github.com/htrskmiku) for the contribution!
+Thanks to junior schoolmate [htrskmiku](https://github.com/htrskmiku) for the contribution!（PJSK box）
