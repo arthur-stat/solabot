@@ -43,7 +43,9 @@ public class Help extends Plugin {
                           - 默认服务器 <cn/tw/jp>：切换默认服务器
                           - msm <可选 cn/tw/jp>: 查看所绑定的 mysekai 数据，默认国服
                           - box <-r> <可选 cn/tw/jp>: 查询 box，已实装，半成品，不加参数为按角色排序，-r参数为按稀有度降序排列，默认国服
-                          - luna茶的组卡器，尚未实装"""));
+                          - luna茶的组卡器，尚未实装
+                        
+                        可以访问https://yly.dylancloud.uk/upload.html在网站上手动上传suite与mysekai数据"""));
 
 //        if (payload.getGroupId() != null && Set.of(619096416L, 1036993047L, 570656202L, 992406250L, 916204609L, 793709714L).contains(payload.getGroupId())) {
         if (true) {  // 反正适用范围不广，随便用吧

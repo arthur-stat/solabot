@@ -48,21 +48,20 @@ document.addEventListener("DOMContentLoaded",()=>{
             formData.append("file", filePath)
             formData.append("region", pjskRegion)
             
-            // Add game ID to form data if provided
-            if(gameIdInput.value.trim() !== ""){
-                formData.append("gameId", gameIdInput.value)
-            }
-            
             // Determine endpoint based on file type
             var endpoint = "/api/v1/pjsk/upload/suite";
             if(dataTypeSelector.value === "mysekai"){
                 endpoint = "/api/v1/pjsk/upload/mysekai";
                 
                 // Validate game ID is provided for mysekai
-                if(gameIdInput.value.trim() === ""){
+                var trimmedGameId = gameIdInput.value.trim();
+                if(trimmedGameId === ""){
                     showCustomToast('error', '错误', '请提供游戏ID', 4000);
                     return;
                 }
+                
+                // Add trimmed game ID to form data
+                formData.append("gameId", trimmedGameId)
             }
             
             fetch(endpoint, {

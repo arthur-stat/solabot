@@ -21,7 +21,7 @@ target/
 .sts4-cache
 
 ### IntelliJ IDEA ###
-.idea
+.idea/
 *.iws
 *.iml
 *.ipr
@@ -48,7 +48,7 @@ __pycache__/
 *.py[cod]
 
 ### static resource ###
-archive/pjsk/
+archive/pjsk/master_data/
 archive/box/
 data/LunabotGallery/
 data/LunabotGalleryThumbnail/
