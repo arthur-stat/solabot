@@ -1,12 +1,22 @@
-
 document.addEventListener("DOMContentLoaded",()=>{
     var buttonSelectFile = document.getElementById("selectFile")
     var selectFile = document.getElementById("file")
     var dataTypeSelector = document.getElementById("dataTypeSelector")
     var submitFile = document.getElementById("submit")
     var regions = document.getElementsByName("region")
+    var gameIdSection = document.getElementById("gameIdSection")
+    var gameIdInput = document.getElementById("gameIdInput")
     var pjskRegion = ""
     var filePath;
+
+    // Show/hide game ID field based on file type selection
+    dataTypeSelector.addEventListener("change", (event)=>{
+        if(dataTypeSelector.value === "mysekai"){
+            gameIdSection.style.display = "block";
+        } else {
+            gameIdSection.style.display = "none";
+        }
+    })
 
     buttonSelectFile.addEventListener("click",(event)=>{
         selectFile.click()
@@ -31,13 +41,31 @@ document.addEventListener("DOMContentLoaded",()=>{
         }
         uploadFile(filePath)
     })
+    
     function uploadFile(filePath){
         try {
             var formData = new FormData();
             formData.append("file", filePath)
-            formData.append("filetype", dataTypeSelector.value)
             formData.append("region", pjskRegion)
-            fetch("/api/upload", {
+            
+            // Add game ID to form data if provided
+            if(gameIdInput.value.trim() !== ""){
+                formData.append("gameId", gameIdInput.value)
+            }
+            
+            // Determine endpoint based on file type
+            var endpoint = "/api/v1/pjsk/upload/suite";
+            if(dataTypeSelector.value === "mysekai"){
+                endpoint = "/api/v1/pjsk/upload/mysekai";
+                
+                // Validate game ID is provided for mysekai
+                if(gameIdInput.value.trim() === ""){
+                    showCustomToast('error', '错误', '请提供游戏ID', 4000);
+                    return;
+                }
+            }
+            
+            fetch(endpoint, {
                     method: "POST",
                     body: formData,
             }).then((response) => {
@@ -63,4 +91,3 @@ window.addEventListener("load", (event)=>{
         showCustomToast('info', '欢迎使用', '上传你的啤酒烧烤数据吧', 4000);
     },500)
 })
-

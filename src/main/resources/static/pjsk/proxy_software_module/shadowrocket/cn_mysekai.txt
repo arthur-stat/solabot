@@ -6,8 +6,8 @@
 #!total=6
 
 [URL Rewrite]
-^https:\/\/mkcn-prod-public-60001-1\.dailygn\.com\/api\/user\/(\d+)\/mysekai\?isForceAllReloadOnlyMysekai\=(True|False)$ https://yly.dylancloud.uk/api/v1/pjsk/upload/mysekai?original=https://mkcn-prod-public-60001-1.dailygn.com/api/user/$1/mysekai?isForceAllReloadOnlyMysekai=$2&user=$1&force=$2 307
-^https:\/\/mkcn-prod-public-60001-2\.dailygn\.com\/api\/user\/(\d+)\/mysekai\?isForceAllReloadOnlyMysekai\=(True|False)$ https://yly.dylancloud.uk/api/v1/pjsk/upload/mysekai?original=https://mkcn-prod-public-60001-2.dailygn.com/api/user/$1/mysekai?isForceAllReloadOnlyMysekai=$2&user=$1&force=$2 307
+^https:\/\/mkcn-prod-public-60001-1\.dailygn\.com\/api\/user\/(\d+)\/mysekai\?isForceAllReloadOnlyMysekai\=(True|False)$ https://yly.dylancloud.uk/api/v1/pjsk/proxy-upload/mysekai?original=https://mkcn-prod-public-60001-1.dailygn.com/api/user/$1/mysekai?isForceAllReloadOnlyMysekai=$2&user=$1&force=$2 307
+^https:\/\/mkcn-prod-public-60001-2\.dailygn\.com\/api\/user\/(\d+)\/mysekai\?isForceAllReloadOnlyMysekai\=(True|False)$ https://yly.dylancloud.uk/api/v1/pjsk/proxy-upload/mysekai?original=https://mkcn-prod-public-60001-2.dailygn.com/api/user/$1/mysekai?isForceAllReloadOnlyMysekai=$2&user=$1&force=$2 307
 ^https:\/\/submit\.backtrace\.io\/  reject
 
 [Mitm]

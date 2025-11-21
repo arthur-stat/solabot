@@ -191,7 +191,7 @@ public class NetworkUtil {
 
 
     /**
-     * 异步请求的通用方法
+     * 异步请求的通用方法 fire-and-forget
      *
      * @param method
      * @param url
@@ -219,7 +219,7 @@ public class NetworkUtil {
 
 
     /**
-     * 异步 POST 请求的通用方法
+     * 异步 POST 请求的通用方法 fire-and-forget
      *
      * @param targetUri
      * @param contentType

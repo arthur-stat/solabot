@@ -31,11 +31,10 @@ public class ApiPaths {
     */
     public static final String PJSK_MYSEKAI_MAP = "/api/v1/pjsk/resource/{region}/mysekai/{id}/map";
     public static final String PJSK_MYSEKAI_OVERVIEW = "/api/v1/pjsk/resource/{region}/mysekai/{id}/overview";
-    public static final String PJSK_UPLOAD_JS = "/upload.js";
-    public static final String PJSK_UPLOAD = "/upload";
-    public static final String PJSK_WEB_UPLOAD = "/api/upload";
+    public static final String PJSK_SUITE_UPLOAD = "/api/v1/pjsk/upload/suite";
+    public static final String PJSK_MYSEKAI_UPLOAD = "/api/v1/pjsk/upload/mysekai";
     public static final String SHADOWROCKET_MODULE_DOWNLOAD_MYSEKAI_CN = "/api/v1/pjsk/module/cn/mysekai";
-    public static final String MYSEKAI_UPLOAD_PROXY = "/api/v1/pjsk/upload/mysekai";
+    public static final String MYSEKAI_UPLOAD_PROXY = "/api/v1/pjsk/proxy-upload/mysekai";
 
 
     public String buildMysekaiMapUrl(String region, String id) {

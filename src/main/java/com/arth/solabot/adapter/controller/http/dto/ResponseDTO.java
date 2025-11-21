@@ -19,6 +19,10 @@ public class ResponseDTO<T> {
 
     private T data;
 
+    public static <T> ResponseDTO<T> success() {
+        return new ResponseDTO<>(200_00, "ok", null);
+    }
+
     public static <T> ResponseDTO<T> success(String message) {
         return new ResponseDTO<>(200_00, message, null);
     }
@@ -35,8 +39,6 @@ public class ResponseDTO<T> {
         return new ResponseDTO<>(code, message, null);
     }
 
-    // --- Convenience methods returning ResponseEntity<ResponseDTO<T>> ---
-
     private static HttpStatus mapCodeToStatus(int code) {
         return switch (code) {
             case 200_00 -> HttpStatus.OK;
@@ -47,6 +49,10 @@ public class ResponseDTO<T> {
                 yield HttpStatus.OK;
             }
         };
+    }
+
+    public static <T> ResponseEntity<ResponseDTO<T>> okEntity() {
+        return ResponseEntity.ok(null);
     }
 
     public static <T> ResponseEntity<ResponseDTO<T>> okEntity(T data) {

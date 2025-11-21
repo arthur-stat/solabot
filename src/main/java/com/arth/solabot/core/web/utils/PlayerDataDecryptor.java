@@ -1,4 +1,4 @@
-package com.arth.solabot.core.web;
+package com.arth.solabot.core.web.utils;
 
 import com.arth.solabot.core.infrastructure.exception.BadRequestException;
 import com.arth.solabot.core.infrastructure.exception.InternalServerErrorException;

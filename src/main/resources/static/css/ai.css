@@ -176,6 +176,39 @@ body:hover {
     color: #667eea;
 }
 
+.gameIdSection {
+    background: #f8f9ff;
+    padding: 20px;
+    border-radius: 15px;
+    margin-bottom: 25px;
+    border: 2px solid #e0e7ff;
+}
+
+.gameIdSection label {
+    display: block;
+    font-weight: 600;
+    color: #4a5568;
+    margin-bottom: 15px;
+    font-size: 15px;
+}
+
+.gameIdInput {
+    width: 100%;
+    padding: 12px 15px;
+    font-size: 16px;
+    border: 2px solid #cbd5e0;
+    border-radius: 10px;
+    background: white;
+    color: #2d3748;
+    transition: all 0.3s ease;
+    outline: none;
+}
+
+.gameIdInput:focus {
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
 .submitFile {
     width: 100%;
     padding: 15px 20px;
@@ -219,6 +252,9 @@ body:hover {
         margin-left: 0;
     }
 }
+
+
+
 
 
 

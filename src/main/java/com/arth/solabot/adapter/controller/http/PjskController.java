@@ -4,7 +4,7 @@ import com.arth.solabot.adapter.controller.ApiPaths;
 import com.arth.solabot.adapter.controller.http.advice.UnwrapData;
 import com.arth.solabot.adapter.controller.http.dto.ResponseDTO;
 import com.arth.solabot.core.infrastructure.exception.ResourceNotFoundException;
-import com.arth.solabot.core.web.service.pjsk.PjskPluginService;
+import com.arth.solabot.core.web.service.pjsk.PjskService;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -20,9 +20,9 @@ import java.io.IOException;
 @Slf4j
 @RestController
 @RequiredArgsConstructor
-public class PjskPluginController {
+public class PjskController {
 
-    private final PjskPluginService pjskPluginService;
+    private final PjskService pjskService;
 
     /**
      * Mysekai 透视 map 请求
@@ -35,7 +35,7 @@ public class PjskPluginController {
     @UnwrapData
     @GetMapping(ApiPaths.PJSK_MYSEKAI_MAP)
     public ResponseEntity<ResponseDTO<Resource>> getMysekaiMap(@PathVariable String region, @PathVariable String id) throws IOException {
-        Resource resource = pjskPluginService.getMysekaiMap(region, id);
+        Resource resource = pjskService.getMysekaiMap(region, id);
         return ResponseEntity.ok()
                 .contentType(MediaType.IMAGE_PNG)
                 .body(ResponseDTO.success(resource));
@@ -53,11 +53,12 @@ public class PjskPluginController {
     @UnwrapData
     @GetMapping(ApiPaths.PJSK_MYSEKAI_OVERVIEW)
     public ResponseEntity<ResponseDTO<Resource>> getMysekaiOverview(@PathVariable String region, @PathVariable String id) throws IOException {
-        Resource resource = pjskPluginService.getMysekaiOverview(region, id);
+        Resource resource = pjskService.getMysekaiOverview(region, id);
         return ResponseEntity.ok()
                 .contentType(MediaType.IMAGE_PNG)
                 .body(ResponseDTO.success(resource));
     }
+
 
     /**
      * Shadowrocket 模块下载请求：国服 Mysekai
@@ -69,12 +70,12 @@ public class PjskPluginController {
     @GetMapping(ApiPaths.SHADOWROCKET_MODULE_DOWNLOAD_MYSEKAI_CN)
     public ResponseEntity<ResponseDTO<Resource>> getShadowrocketModuleForCnMysekai() {
         try {
-            Resource resource = pjskPluginService.getShadowrocketModuleForCnMysekai();
+            Resource resource = pjskService.getShadowrocketModuleForCnMysekai();
 
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.parseMediaType("text/plain; charset=utf-8"));
             headers.set(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + resource.getFilename() + "\"");
-            return ResponseEntity.ok().headers(headers).body(ResponseDTO.success(resource));
+            return ResponseDTO.okEntity(resource, headers);
 
         } catch (ResourceNotFoundException e) {
             throw e;
@@ -82,6 +83,7 @@ public class PjskPluginController {
             return ResponseDTO.internalErrorEntity("server error");
         }
     }
+
 
     /**
      * 模块重定向至此处，后端负责向游戏服务器请求数据；
@@ -97,31 +99,43 @@ public class PjskPluginController {
             HttpServletRequest request,
             @RequestParam("original") String original
     ) throws IOException {
-        return pjskPluginService.proxyUpload(request, original);
+        return pjskService.proxyUpload(request, original);
     }
 
+
     /**
-     * 前端返回格式：MultipartFile file（文件）  String filetype（文件类型，suite或mysekai）   String region（游戏区服）
-     * 后端返回格式(JSON)：
-     * {
-     * "success" : 布尔值,
-     * "message" : 字符串，消息
-     * }
+     * Suite 文件的 Web 上传接口
      *
      * @param file
-     * @param filetype
      * @param region
      * @return
      * @throws IOException
      */
-    @PostMapping(ApiPaths.PJSK_WEB_UPLOAD)
-    public ResponseEntity<ResponseDTO<String>> upload(
+    @PostMapping(ApiPaths.PJSK_SUITE_UPLOAD)
+    public ResponseEntity<ResponseDTO<String>> uploadSuite(
             @RequestParam("file") MultipartFile file,
-            @RequestParam("filetype") String filetype,
             @RequestParam("region") String region
     ) throws IOException {
+        pjskService.handleSuiteUpload(file, region);
+        return ResponseDTO.okEntity();
+    }
 
-        ResponseDTO<String> response = pjskPluginService.handleUpload(file, filetype, region);
-        return ResponseDTO.from(response);
+    /**
+     * Mysekai 文件的 Web 上传接口
+     *
+     * @param file
+     * @param region
+     * @param gameId 游戏ID
+     * @return
+     * @throws IOException
+     */
+    @PostMapping(ApiPaths.PJSK_MYSEKAI_UPLOAD)
+    public ResponseEntity<ResponseDTO<String>> uploadMysekai(
+            @RequestParam("file") MultipartFile file,
+            @RequestParam("region") String region,
+            @RequestParam("gameId") String gameId
+    ) throws IOException {
+        pjskService.handleMysekaiUpload(file, region, gameId);
+        return ResponseDTO.okEntity();
     }
 }
