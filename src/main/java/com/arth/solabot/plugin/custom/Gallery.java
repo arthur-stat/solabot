@@ -36,6 +36,8 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
 /**
@@ -58,6 +60,9 @@ public class Gallery extends Plugin {
     private int UPDATE_TTL;
     @Value("${app.parameter.plugin.gallery.update-cron}")
     private String UPDATE_CRON;
+
+    // 例如 “miku*5”，分为 “miku” “*” “5” 三部分
+    private final Pattern PATTERN = Pattern.compile("^(.*)(\\D)(\\d+)$");
 
     /* 画廊普通图片写锁（该锁颗粒度极小，仅为了保证短时间内临界区资源的完整） */
     private static final ReentrantReadWriteLock imgLock = new ReentrantReadWriteLock();
@@ -88,7 +93,7 @@ public class Gallery extends Plugin {
               - 看猪，鸟，夜鹭，西巴，kiwi，企鹅
             
             以上是紧凑命令，无需空格，使用方法示例是：/看miku
-            
+            可以一次性看多个，例如：/看miku*5
             也可以按 pid 查看，例如：/看912。
             
             如果需要查看各角色的id-缩略图，在 “看” 后加上 “所有” 即可，例如：/看所有miku
@@ -130,13 +135,51 @@ public class Gallery extends Plugin {
             }
 
             // 否则解释为别名
-            String role = MemoryData.alias.get(arg.trim().toLowerCase(Locale.ROOT));
+            /* 考虑看多张图 */
+            String input = arg.trim().toLowerCase(Locale.ROOT);
+            Matcher matcher = PATTERN.matcher(input);
+
+            // 不匹配模式，将整个 arg 视为别名（而非 “别名 + 连接符 + 数量”）
+            if (!matcher.matches()) {
+                String role = MemoryData.alias.get(input);
+                if (role != null) {
+                    List<String> idsForRole = roles.get(role);
+                    if (idsForRole != null) {
+                        int idx = rand.nextInt(idsForRole.size());
+                        String id = idsForRole.get(idx);
+                        sender.sendImage(payload, apiPaths.buildGalleryImgUrl(id));
+                    }
+                }
+                continue;
+            }
+
+            // 模式串匹配成功，将 arg 视为 “别名 + 连接符 + 数量” 三部分，即看多张图
+            String role = MemoryData.alias.get(matcher.group(1));
+            String connector = matcher.group(2);  // 连接符具体是什么我们不在意，这样兼容性更强一点（比如×、x、*、✖️、❌）
+            int count;
+            try {
+                count = Integer.parseInt(matcher.group(3));
+            } catch (NumberFormatException e) {
+                sender.replyText(payload, "数量参数不合法");
+                continue;
+            }
+
+            if (count > 5 || count < 1) {
+                sender.replyText(payload, "数量应介于 1~5 之间哦");
+                continue;
+            }
+
             if (role != null) {
                 List<String> idsForRole = roles.get(role);
                 if (idsForRole != null) {
-                    int idx = rand.nextInt(idsForRole.size());
-                    String id = idsForRole.get(idx);
-                    sender.sendImage(payload, apiPaths.buildGalleryImgUrl(id));
+                    List<String> list = new ArrayList<>(count);
+                    for (int i = 0; i < count; i++) {
+                        int idx = rand.nextInt(idsForRole.size());
+                        String id = idsForRole.get(idx);
+                        String url = apiPaths.buildGalleryImgUrl(id);
+                        list.add(url);
+                    }
+                    sender.replyImage(payload, list);
                 }
             }
         }

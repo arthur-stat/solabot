@@ -139,6 +139,7 @@ public final class MemoryData {
 
         alias.put("miku", "miku");
         alias.put("初音未来", "miku");
+        alias.put("初音", "miku");
         alias.put("未来", "miku");
         alias.put("葱", "miku");
 
