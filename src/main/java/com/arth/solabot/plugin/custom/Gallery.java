@@ -61,8 +61,12 @@ public class Gallery extends Plugin {
     @Value("${app.parameter.plugin.gallery.update-cron}")
     private String UPDATE_CRON;
 
-    // 例如 “miku*5”，分为 “miku” “*” “5” 三部分
-    private final Pattern PATTERN = Pattern.compile("^(.*)(\\D)(\\d+)$");
+    // 模式匹配字符串，判断字符串是否为纯数字（如果是则解释为数字 pid）
+    private final Pattern PATTERN_NUM = Pattern.compile("\\d+");
+    // 用于匹配并清洗不可见字符，避免干扰多图命令解析的匹配
+    private final Pattern PATTERN_CLEAN = Pattern.compile("[\\uFE00-\\uFE0F\\p{C}]");
+    // 用于多图命令的解析，例如 “miku*5”，分为 “miku” “*” “5” 三部分
+    private final Pattern PATTERN_SPLIT = Pattern.compile("^(.*)(\\D)(\\d+)$");
 
     /* 画廊普通图片写锁（该锁颗粒度极小，仅为了保证短时间内临界区资源的完整） */
     private static final ReentrantReadWriteLock imgLock = new ReentrantReadWriteLock();
@@ -103,7 +107,7 @@ public class Gallery extends Plugin {
             非紧凑命令（需要空格）：
               - update: 强制与图源进行本地增量同步
             
-            图库来自luna茶""";
+            图库由luna茶和他的用户们上传~""";
 
     @BotCommand(command = "index")
     public void index(ParsedPayloadDTO payload, List<String> args) {
@@ -112,6 +116,9 @@ public class Gallery extends Plugin {
         for (String arg : args) {
             // 空字符
             if (arg == null || arg.isEmpty()) continue;
+
+            /* 有个坑是要先清洗一遍字符串，因为可能藏有不可见字符（特别是使用国产安卓机的国产输入法时），这会影响 PATTERN_SPLIT 的匹配 */
+            arg = PATTERN_CLEAN.matcher(arg).replaceAll("");
 
             // 全局随机
             if (arg.equals("看") || arg.equals("看你的")) {
@@ -129,7 +136,7 @@ public class Gallery extends Plugin {
             }
 
             // 如果输入是纯数字，视为 pid
-            if (arg.matches("\\d+")) {
+            if (PATTERN_NUM.matcher(arg).matches()) {
                 sender.sendImage(payload, apiPaths.buildGalleryImgUrl(arg));
                 continue;
             }
@@ -137,7 +144,7 @@ public class Gallery extends Plugin {
             // 否则解释为别名
             /* 考虑看多张图 */
             String input = arg.trim().toLowerCase(Locale.ROOT);
-            Matcher matcher = PATTERN.matcher(input);
+            Matcher matcher = PATTERN_SPLIT.matcher(input);
 
             // 不匹配模式，将整个 arg 视为别名（而非 “别名 + 连接符 + 数量”）
             if (!matcher.matches()) {

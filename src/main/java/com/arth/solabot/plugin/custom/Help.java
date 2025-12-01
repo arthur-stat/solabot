@@ -10,7 +10,6 @@ import com.arth.solabot.plugin.system.Plugin;
 import lombok.RequiredArgsConstructor;
 
 import java.util.List;
-import java.util.Set;
 
 @BotPlugin(name = {"help"})
 @RequiredArgsConstructor
