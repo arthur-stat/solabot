@@ -73,7 +73,9 @@ public class PluginRegistryCenter {
                 PluginHolder holder = new PluginHolder(pluginInstance, pluginAnn.glued());
 
                 // 扫描带有 @BotCommand 注解的 public 方法并注册命令别名
-                for (Method m : clazz.getMethods()) {
+                // 使用 targetClazz 以获取原始方法上的注解（否则可能会被动态代理抹掉注解信息，部分 plugin 所有方法均无法被注册）
+                // 这里是个坑点，不要用 clazz！排查了许久才找出问题
+                for (Method m : targetClazz.getMethods()) {
                     BotCommand cmdAnn = m.getAnnotation(BotCommand.class);
                     if (cmdAnn == null) continue;
                     if (!isPublic(m.getModifiers())) continue;
