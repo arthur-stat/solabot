@@ -21,8 +21,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 
 @Slf4j
@@ -34,7 +32,6 @@ public class OneBotSender implements Sender {
     private final SimpleActionBuilder simpleActionBuilder;
     private final ObjectMapper objectMapper;
     private final EchoWaiter echoWaiter;
-    private final ConcurrentHashMap<String, CompletableFuture<JsonNode>> pending = new ConcurrentHashMap<>();
 
     private static final int PARTIAL_MESSAGE_MAX_CHAR_NUM = 300_000;
 
@@ -433,7 +430,6 @@ public class OneBotSender implements Sender {
     private String buildMultiImageSendJson(String messageType, Map<String, Object> target, List<String> files) {
         Map<String, Object> root = new HashMap<>();
         root.put("action", "send_msg");
-        root.put("echo", "echo-" + System.currentTimeMillis());
 
         Map<String, Object> params = new HashMap<>(target);
         params.put("message_type", messageType);
@@ -458,7 +454,6 @@ public class OneBotSender implements Sender {
     private String buildMultiImageResponseJson(String messageType, Map<String, Object> target, long messageId, List<String> files) {
         Map<String, Object> root = new HashMap<>();
         root.put("action", "send_msg");
-        root.put("echo", "echo-" + System.currentTimeMillis());
 
         Map<String, Object> params = new HashMap<>(target);
         params.put("message_type", messageType);

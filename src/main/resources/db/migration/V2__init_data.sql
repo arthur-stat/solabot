@@ -11,7 +11,13 @@ VALUES
     (2462516428, '7503172168113658687', null, null, null, null, 'cn', NOW(), NOW()),
     (2660564229, '7485918725925935911', null, null, null, null, 'cn', NOW(), NOW()),
     (1355343505, '7486453954226772745', null, null, null, null, 'cn', NOW(), NOW()),
-    (3468684112, '7445607211377793833', null, null, null, null, 'cn', NOW(), NOW())
+    (3468684112, '7445607211377793833', null, null, null, null, 'cn', NOW(), NOW()),
+    (1093664084, '7485918807991769867', null, null, null, null, 'cn', NOW(), NOW()),
+    (2647203449, '13156441665941511',  '13156441665941511', null, null, null, 'cn', NOW(), NOW()),
+    (2785983443, null, '445447333024854027', null, null, null, 'jp', NOW(), NOW()),
+    (2804953970, null, '566088661097308165', null, null, null, 'jp', NOW(), NOW()),
+    (3528800641, '7486314772426939173', null, null, null, null, 'cn', NOW(), NOW()),
+    (3958746790, '7445088585579125531', null, null, null, null, 'cn', NOW(), NOW())
     ON CONFLICT (user_id)
 DO NOTHING;
 

@@ -99,7 +99,6 @@ public class OneBotActionChainBuilder implements ActionChainBuilder {
     private String buildSendJson(String messageType, Map<String, Object> target) {
         Map<String, Object> root = new HashMap<>();
         root.put("action", "send_msg");
-        root.put("echo", "echo-" + System.currentTimeMillis());
 
         Map<String, Object> params = new HashMap<>(target);
         params.put("message_type", messageType);

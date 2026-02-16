@@ -47,7 +47,7 @@ public class Help extends Plugin {
                         可以访问""" + apiPaths.DOMAIN_NAME + "/upload.html在网站上手动上传suite与mysekai数据"));
 
 //        if (payload.getGroupId() != null && Set.of(619096416L, 1036993047L, 570656202L, 992406250L, 916204609L, 793709714L).contains(payload.getGroupId())) {
-        if (true) {  // 反正适用范围不广，随便用吧
+        if (true) {  // 反正使用范围不广，随便用吧
             building.addCustomNode(payload.getSelfId(), "bot", n -> n.text("""
                             我们的绑定功能没有接游戏 api，目前唯一的作用是定位自己的数据，所以输错了也不会有提示"""))
                     .addCustomNode(payload.getSelfId(), "bot", n -> n.text("""

@@ -88,13 +88,6 @@ public class OneBotWsController extends TextWebSocketHandler {
 
             JsonNode root = objectMapper.readTree(rawPayload);
 
-            /* 分流消息（拦截 echo） */
-            final JsonNode echoNode = root.get("echo");
-            if (echoNode != null && !echoNode.isNull() && root.get("post_type") == null) {
-                final String echo = echoNode.asText();
-                if (echoWaiter.complete(echo, rawPayload)) return;
-            }
-
             /* 注册 session，绑定至 self_id */
             if (session.getAttributes().get("self_id") == null) {
                 final long selfId = root.path("self_id").asLong(0L);
@@ -102,6 +95,15 @@ public class OneBotWsController extends TextWebSocketHandler {
                     sessionRegistry.put(selfId, session);
                     session.getAttributes().put("self_id", selfId);
                 }
+            }
+
+            /* 协议回包：post_type 为空，优先走 EchoWaiter 并结束，不进入事件解析链路 */
+            if (root.get("post_type") == null) {
+                final JsonNode echoNode = root.get("echo");
+                if (echoNode != null && !echoNode.isNull()) {
+                    echoWaiter.complete(echoNode.asText(), rawPayload);
+                }
+                return;
             }
 
             ParsedPayloadDTO dto = payloadParser.parseRawToDTO(root, rawPayload);

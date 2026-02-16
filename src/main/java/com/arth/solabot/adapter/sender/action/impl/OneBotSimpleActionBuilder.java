@@ -71,7 +71,6 @@ public class OneBotSimpleActionBuilder implements SimpleActionBuilder {
     public String buildGroupForwardAction(long groupId, List<Map<String, Object>> nodes) {
         Map<String, Object> root = new HashMap<>();
         root.put("action", "send_group_forward_msg");
-        root.put("echo", "echo-" + System.currentTimeMillis());
 
         Map<String, Object> params = new HashMap<>();
         params.put("group_id", groupId);
@@ -89,7 +88,6 @@ public class OneBotSimpleActionBuilder implements SimpleActionBuilder {
     public String buildPrivateForwardAction(long userId, List<Map<String, Object>> nodes) {
         Map<String, Object> root = new HashMap<>();
         root.put("action", "send_private_forward_msg");
-        root.put("echo", "echo-" + System.currentTimeMillis());
 
         Map<String, Object> params = new HashMap<>();
         params.put("user_id", userId);
@@ -108,7 +106,6 @@ public class OneBotSimpleActionBuilder implements SimpleActionBuilder {
     private String buildSendText(String messageType, Map<String, Object> target, String text) {
         OneBotReturnActionDTO dto = new OneBotReturnActionDTO();
         dto.setAction("send_msg");
-        dto.setEcho("echo-" + System.currentTimeMillis());
 
         Map<String, Object> params = new HashMap<>(target);
         params.put("message_type", messageType);
@@ -130,7 +127,6 @@ public class OneBotSimpleActionBuilder implements SimpleActionBuilder {
     private String buildReplyText(String messageType, Map<String, Object> target, long messageId, String text) {
         OneBotReturnActionDTO dto = new OneBotReturnActionDTO();
         dto.setAction("send_msg");
-        dto.setEcho("echo-" + System.currentTimeMillis());
 
         Map<String, Object> params = new HashMap<>(target);
         params.put("message_type", messageType);
@@ -156,7 +152,6 @@ public class OneBotSimpleActionBuilder implements SimpleActionBuilder {
     private String buildSendImage(String messageType, Map<String, Object> target, String file) {
         OneBotReturnActionDTO dto = new OneBotReturnActionDTO();
         dto.setAction("send_msg");
-        dto.setEcho("echo-" + System.currentTimeMillis());
 
         Map<String, Object> params = new HashMap<>(target);
         params.put("message_type", messageType);
@@ -180,7 +175,6 @@ public class OneBotSimpleActionBuilder implements SimpleActionBuilder {
     private String buildReplyImage(String messageType, Map<String, Object> target, long messageId, String file) {
         OneBotReturnActionDTO dto = new OneBotReturnActionDTO();
         dto.setAction("send_msg");
-        dto.setEcho("echo-" + System.currentTimeMillis());
 
         Map<String, Object> params = new HashMap<>(target);
         params.put("message_type", messageType);
@@ -206,7 +200,6 @@ public class OneBotSimpleActionBuilder implements SimpleActionBuilder {
     private String buildSendVideo(String messageType, Map<String, Object> target, String file) {
         OneBotReturnActionDTO dto = new OneBotReturnActionDTO();
         dto.setAction("send_msg");
-        dto.setEcho("echo-" + System.currentTimeMillis());
 
         Map<String, Object> params = new HashMap<>(target);
         params.put("message_type", messageType);

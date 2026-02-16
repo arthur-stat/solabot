@@ -18,18 +18,22 @@ public class EchoWaiter {
 
     /** 控制器收到回包时调用 **/
     public boolean complete(String echo, String rawJson) {
-        var fut = pending.computeIfAbsent(echo, k -> new CompletableFuture<>());
-        boolean ok = fut.complete(rawJson);
-        return ok;
+        if (echo == null || echo.isBlank()) return false;
+        var fut = pending.get(echo);
+        if (fut == null) return false;
+        return fut.complete(rawJson);
     }
 
     /** 发送端等待回包（带超时）；返回原始 JSON 字符串 **/
     public String await(String echo, long timeoutMillis) {
-        var fut = pending.computeIfAbsent(echo, k -> new CompletableFuture<>());
+        var fut = pending.get(echo);
+        if (fut == null) {
+            throw new IllegalStateException("echo was not registered: " + echo);
+        }
         try {
             return fut.orTimeout(timeoutMillis, java.util.concurrent.TimeUnit.MILLISECONDS).join();
         } finally {
-            pending.remove(echo);
+            pending.remove(echo, fut);
         }
     }
 }
