@@ -7,6 +7,7 @@ import com.arth.solabot.core.bot.dto.ParsedPayloadDTO;
 import com.arth.solabot.core.bot.invoker.annotation.BotCommand;
 import com.arth.solabot.core.bot.invoker.annotation.BotPlugin;
 import com.arth.solabot.core.general.cache.service.StringCacheService;
+import com.arth.solabot.plugin.system.Plugin;
 import jakarta.annotation.Nullable;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -16,7 +17,7 @@ import java.util.*;
 import java.util.concurrent.atomic.AtomicLong;
 
 @Slf4j
-@BotPlugin(value = {"sleep","g"},glued = true)
+@BotPlugin(name = {"sleep","g"},glued = true)
 @RequiredArgsConstructor
 public class SleepingMeter extends Plugin {
 
@@ -42,12 +43,13 @@ public class SleepingMeter extends Plugin {
     @Override
     public String getHelpText() {
         return """
-               /gmorning ( /sleep morning ): 早安命令，若晚安过则同时输出睡觉时间
-               /gnight ( /sleep night ): 晚安命令
+               Sleep 模块支持如下命令：
+               /gmorning ( /sleep morning 或 /g morning): 早安命令，若晚安过则同时输出睡觉时间
+               /gnight ( /sleep night 或 /g night): 晚安命令，记录睡觉时间，睡觉时间有效期为1天
                """;
     }
 
-    @BotCommand({"早安","morning"})
+    @BotCommand(command = {"早安", "morning"})
     public void morning(ParsedPayloadDTO payload) {
         //sender.replyText(payload,"morning");
         User sUser = getSleepingUser(payload.getGroupId(),payload.getUserId());
@@ -72,7 +74,7 @@ public class SleepingMeter extends Plugin {
         sender.pushActionJSON(payload.getSelfId(), sendJson);
     }
 
-    @BotCommand({"晚安","night"})
+    @BotCommand(command = {"晚安", "night"})
     public void night(ParsedPayloadDTO payload) {
         setSleepingTime(payload.getGroupId(),payload.getUserId(),payload.getTime());
 
