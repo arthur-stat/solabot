@@ -62,7 +62,8 @@ public class Help extends Plugin {
         building.addCustomNode(payload.getSelfId(), "bot", n -> n.text(pluginRegistryCenter.getPluginHelpText(Img.class)))
                 .addCustomNode(payload.getSelfId(), "bot", n -> n.text(pluginRegistryCenter.getPluginHelpText(Gallery.class)))
                 .addCustomNode(payload.getSelfId(), "bot", n -> n.text(pluginRegistryCenter.getPluginHelpText(Live.class)))
-                .addCustomNode(payload.getSelfId(), "bot", n -> n.text(pluginRegistryCenter.getPluginHelpText(Test.class)));
+                .addCustomNode(payload.getSelfId(), "bot", n -> n.text(pluginRegistryCenter.getPluginHelpText(Test.class)))
+                .addCustomNode(payload.getSelfId(), "bot", n -> n.text(pluginRegistryCenter.getPluginHelpText(SleepingMeter.class)));
 
         String json = (payload.getGroupId() != null) ? building.toGroupJson(payload.getGroupId()) : building.toPrivateJson(payload.getUserId());
 
